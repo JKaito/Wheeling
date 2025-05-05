@@ -127,7 +127,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="80dp"
-        android:layout_marginRight="20dp"
+        android:layout_marginEnd="20dp"
         android:contentDescription="@string/profile_button_description"
         app:cardCornerRadius="200dp">
 
@@ -149,48 +149,119 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:background="#ffffff"
-        android:elevation="8dp"
-        android:weightSum="4">
+        android:elevation="8dp">
 
-        <ImageButton
-            android:layout_weight="1"
-            android:layout_width="48dp"
-            android:layout_height="25dp"
-            android:layout_marginVertical="20dp"
-            android:src="@drawable/ic_wheelchair"
-            android:scaleType="centerInside"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_wheelchair"/>
+        <!-- Space before first icon -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
 
-        <ImageButton
-            android:layout_width="48dp"
-            android:layout_height="16dp"
-            android:layout_marginVertical="20dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_car"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_car"/>
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_wheelchair"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/profile_button_description">
 
-        <ImageButton
-            android:layout_weight="1"
-            android:layout_width="48dp"
-            android:layout_height="28dp"
-            android:layout_marginVertical="20dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_walk"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_walk" />
+            <ImageButton
+                android:id="@+id/icon_wheelchair"
+                android:clickable="false"
+                android:focusable="false"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_wheelchair"
+                android:scaleType="centerInside"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/nav_wheelchair"/>
+        </androidx.cardview.widget.CardView>
 
-        <ImageButton
-            android:layout_weight="1"
-            android:layout_width="48dp"
-            android:layout_height="25dp"
-            android:layout_marginVertical="20dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_home"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_home" />
+        <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_car"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/profile_button_description"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <ImageButton
+                android:id="@+id/icon_car"
+                android:clickable="false"
+                android:focusable="false"
+                android:layout_width="match_parent"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/nav_car"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_car" />
+        </androidx.cardview.widget.CardView>
+
+        <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_walk"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            app:cardBackgroundColor="#FFFFFF"
+            android:layout_gravity="center"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/profile_button_description">
+
+            <ImageButton
+                android:id="@+id/icon_card_walk"
+                android:clickable="false"
+                android:focusable="false"
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:layout_gravity="center"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_walk"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/nav_walk"/>
+        </androidx.cardview.widget.CardView>
+
+        <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_home"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            app:cardBackgroundColor="#FFFFFF"
+            android:layout_gravity="center"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/profile_button_description">
+
+            <ImageButton
+                android:id="@+id/icon_home"
+                android:clickable="false"
+                android:focusable="false"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_home"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/nav_home"/>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Space after last icon -->
+        <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
     </LinearLayout>
+
 
 </RelativeLayout>

@@ -1,13 +1,17 @@
 package com.example.wheeling;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.wheeling.databinding.ActivityMapsBinding;
@@ -19,6 +23,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -53,7 +62,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 );
             }
         });
+
+        // 🔹 Map each card to its corresponding icon
+        Map<CardView, ImageButton> cardIconMap = new HashMap<>();
+        cardIconMap.put(findViewById(R.id.card_wheelchair), findViewById(R.id.icon_wheelchair));
+        cardIconMap.put(findViewById(R.id.card_car), findViewById(R.id.icon_car));
+        cardIconMap.put(findViewById(R.id.card_walk), findViewById(R.id.icon_card_walk));
+        cardIconMap.put(findViewById(R.id.card_home), findViewById(R.id.icon_home));
+
+        // 🔹 Handle selection logic
+        for (CardView card : cardIconMap.keySet()) {
+            card.setOnClickListener(view -> {
+                for (Map.Entry<CardView, ImageButton> entry : cardIconMap.entrySet()) {
+                    entry.getKey().setCardBackgroundColor(
+                            ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+                    );
+                    entry.getValue().setColorFilter(null); // Reset icon tint
+                }
+
+                card.setCardBackgroundColor(
+                        ColorStateList.valueOf(Color.parseColor("#379FFF"))
+                );
+                cardIconMap.get(card).setColorFilter(Color.WHITE);
+            });
+        }
+
+        // 🔹 Preselect one by default (e.g., wheelchair)
+        ((CardView) findViewById(R.id.card_wheelchair)).setCardBackgroundColor(
+                ColorStateList.valueOf(Color.parseColor("#379FFF"))
+        );
+        ((ImageButton) findViewById(R.id.icon_wheelchair)).setColorFilter(Color.WHITE);
     }
+
+
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -61,7 +103,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (hasLocationPermission()) {
             try {
-                mMap.setMyLocationEnabled(true);
+                mMap.setMyLocationEnabled(false);
             } catch (SecurityException e) {
                 e.printStackTrace();
             }
