@@ -1,0 +1,196 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MapsActivity">
+
+    <!-- Map Fragment -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Search Bar -->
+    <LinearLayout
+        android:id="@+id/search_bar_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:padding="5dp"
+        android:orientation="horizontal"
+        android:background="@drawable/search_background"
+        android:gravity="center_vertical"
+        android:elevation="4dp"
+        android:clipToPadding="false">
+
+        <EditText
+            android:id="@+id/search_input"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:hint="@string/search_hint"
+            android:inputType="text"
+            android:autofillHints="username"
+            android:background="@android:color/transparent"
+            android:paddingHorizontal="12dp"
+            android:textColor="#000000"
+            android:textColorHint="#888888"
+            android:textSize="16sp"
+            android:importantForAutofill="yes" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="8dp"
+            app:cardBackgroundColor="#4B5057"
+            android:contentDescription="@string/profile_button_description"
+            app:cardCornerRadius="200dp">
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_profile"
+                android:scaleType="fitXY"/>
+        </androidx.cardview.widget.CardView>
+
+
+    </LinearLayout>
+
+    <!-- Filter Buttons -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_below="@id/search_bar_container"
+        android:padding="8dp"
+        android:fillViewport="true"
+        android:background="@android:color/transparent"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/FilterButtonStyle"
+                android:text="@string/filter_food"
+                app:icon="@drawable/ic_food"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/FilterButtonStyle"
+                android:text="@string/filter_drinks"
+                app:icon="@drawable/ic_drinks"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/FilterButtonStyle"
+                android:text="@string/filter_coffee"
+                app:icon="@drawable/ic_coffee"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/FilterButtonStyle"
+                android:text="@string/filter_hotels"
+                app:icon="@drawable/ic_hotels"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Location Button -->
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/myLocation"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        app:cardBackgroundColor="#4B5057"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="80dp"
+        android:layout_marginRight="20dp"
+        android:contentDescription="@string/profile_button_description"
+        app:cardCornerRadius="200dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_gps_fixed"
+            android:scaleType="fitXY"/>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 🔹 Bottom Navigation -->
+    <LinearLayout
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:background="#ffffff"
+        android:elevation="8dp"
+        android:weightSum="4">
+
+        <ImageButton
+            android:layout_weight="1"
+            android:layout_width="48dp"
+            android:layout_height="25dp"
+            android:layout_marginVertical="20dp"
+            android:src="@drawable/ic_wheelchair"
+            android:scaleType="centerInside"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/nav_wheelchair"/>
+
+        <ImageButton
+            android:layout_width="48dp"
+            android:layout_height="16dp"
+            android:layout_marginVertical="20dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/nav_car"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_car"/>
+
+        <ImageButton
+            android:layout_weight="1"
+            android:layout_width="48dp"
+            android:layout_height="28dp"
+            android:layout_marginVertical="20dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_walk"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/nav_walk" />
+
+        <ImageButton
+            android:layout_weight="1"
+            android:layout_width="48dp"
+            android:layout_height="25dp"
+            android:layout_marginVertical="20dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_home"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/nav_home" />
+    </LinearLayout>
+
+</RelativeLayout>

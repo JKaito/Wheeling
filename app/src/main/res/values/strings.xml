@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Wheeling</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="search_hint">Search for store or shop</string>
+    <string name="profile_icon">Profile icon</string>
+    <string name="location_button">Locate me</string>
+    <string name="nav_wheelchair">Wheelchair access</string>
+    <string name="nav_car">Car navigation</string>
+    <string name="nav_walk">Walking</string>
+    <string name="nav_home">Home</string>
+
+    <string name="filter_food">Food</string>
+    <string name="filter_drinks">Drinks</string>
+    <string name="filter_coffee">Coffee</string>
+    <string name="filter_hotels">Hotels</string>
+
+
+    <string name="profile_button_description">Open profile</string>
+
+</resources>
