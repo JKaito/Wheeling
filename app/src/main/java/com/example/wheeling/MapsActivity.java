@@ -24,8 +24,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Dash;
+import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
 import com.google.maps.android.PolyUtil;
@@ -49,6 +51,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -58,6 +61,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private com.google.android.gms.maps.model.Polyline currentRoute;
     private com.google.android.gms.maps.model.Marker destinationMarker;
     private com.google.android.gms.maps.model.Marker userMarker;
+    private com.google.android.gms.maps.model.Polyline googleRoutePolyline;
+    private com.google.android.gms.maps.model.Polyline accessibleRoutePolyline;
 
     private int routeColor = Color.parseColor("#EA8C00"); // default orange for walking
     private GoogleMap mMap;
@@ -112,7 +117,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 card.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#379FFF")));
                 cardIconMap.get(card).setColorFilter(Color.WHITE);
 
-                // 🔹 Set travel mode and color based on selection
+                // 🔹 Set travel mode and color
                 if (card.getId() == R.id.card_car) {
                     selectedTravelMode = "driving";
                     routeColor = Color.parseColor("#485AFF");
@@ -120,21 +125,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     selectedTravelMode = "walking";
                     routeColor = Color.parseColor("#EA8C00");
                 }
+                // 🚨 Clear previous routes BEFORE drawing
+                if (googleRoutePolyline != null) {
+                    googleRoutePolyline.remove();
+                    googleRoutePolyline = null;
+                }
+                if (accessibleRoutePolyline != null) {
+                    accessibleRoutePolyline.remove();
+                    accessibleRoutePolyline = null;
+                }
 
-                // 🔁 Re-draw the route if a destination was already selected
+                // 🔁 Redraw route if a destination was selected
                 if (lastDestination != null) {
-                    drawRouteTo(lastDestination);
+                    drawGoogleRoute(lastDestination);
+
+                    if ("walking".equals(selectedTravelMode)) {
+                        if (hasLocationPermission()) {
+                            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                return;
+                            }
+                            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                                if (location != null) {
+                                    LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
+                                    fetchAccessibleRoute(origin, lastDestination);
+                                }
+                            });
+                        }
+                    }
                 }
             });
         }
-
 
         // ✅ Trigger initial selection of wheelchair card through shared logic
         CardView defaultSelectedCard = findViewById(R.id.card_wheelchair);
         defaultSelectedCard.performClick(); // This ensures it uses the same styling logic
     }
-
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -147,8 +172,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
 
-        mMap.setOnMapClickListener(this::drawRouteTo);
+        mMap.setOnMapClickListener(destination -> {
+            lastDestination = destination; // ✅ Track last selected destination
+
+            drawGoogleRoute(destination);
+
+            if (!"walking".equals(selectedTravelMode)) return;
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null) {
+                    LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
+                    fetchAccessibleRoute(origin, destination);
+                }
+            });
+        });
     }
+
 
     private boolean hasLocationPermission() {
         return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -184,29 +228,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void drawRouteTo(LatLng destination) {
-        if (!hasLocationPermission()) {
-            Toast.makeText(this, "Location permission not granted", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        lastDestination = destination;
-
-        // 🔹 Remove previous destination marker only
-        if (destinationMarker != null) {
-            destinationMarker.remove();
-        }
-
-        // 🔹 Add new destination marker
-        destinationMarker = mMap.addMarker(new MarkerOptions()
-                .position(destination)
-                .title("Destination"));
-
-        // 🔹 Keep user marker and clear only the route
-        if (currentRoute != null) {
-            currentRoute.remove();
-            currentRoute = null;
-        }
+    private void drawGoogleRoute(LatLng destination) {
+        if (!hasLocationPermission()) return;
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -215,14 +238,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (location != null) {
                 LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
                 String url = getDirectionsUrl(origin, destination);
-                fetchRoute(url);
-            } else {
-                Toast.makeText(this, "Location not available", Toast.LENGTH_SHORT).show();
+
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder().url(url).build();
+
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                        if (response.isSuccessful() && response.body() != null) {
+                            try {
+                                String json = response.body().string();
+                                JSONObject jsonObject = new JSONObject(json);
+                                JSONArray routes = jsonObject.getJSONArray("routes");
+                                if (routes.length() > 0) {
+                                    String polyline = routes.getJSONObject(0)
+                                            .getJSONObject("overview_polyline")
+                                            .getString("points");
+                                    List<LatLng> points = PolyUtil.decode(polyline);
+
+                                    runOnUiThread(() -> {
+                                        if (googleRoutePolyline != null) googleRoutePolyline.remove();
+                                        googleRoutePolyline = mMap.addPolyline(new PolylineOptions()
+                                                .addAll(points)
+                                                .color(Color.parseColor("#485AFF")) // ← REMOVE this hardcoded color
+                                                .width(10));
+                                    });
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
             }
         });
     }
-
-
 
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
         String originParam = "origin=" + origin.latitude + "," + origin.longitude;
@@ -232,6 +287,63 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         return "https://maps.googleapis.com/maps/api/directions/json?" +
                 originParam + "&" + destParam + "&" + modeParam + "&key=" + key;
+    }
+
+    private void fetchAccessibleRoute(LatLng origin, LatLng destination) {
+        String apiKey = getString(R.string.osm_key); // assuming you defined this in google_maps_api.xml
+        String url = "https://api.openrouteservice.org/v2/directions/wheelchair?api_key=" + apiKey
+                + "&start=" + origin.longitude + "," + origin.latitude
+                + "&end=" + destination.longitude + "," + destination.latitude;
+
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(url).build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        String json = response.body().string();
+                        JSONObject jsonObject = new JSONObject(json);
+                        JSONArray coordinates = jsonObject
+                                .getJSONArray("features")
+                                .getJSONObject(0)
+                                .getJSONObject("geometry")
+                                .getJSONArray("coordinates");
+
+                        List<LatLng> path = new java.util.ArrayList<>();
+                        for (int i = 0; i < coordinates.length(); i++) {
+                            JSONArray coord = coordinates.getJSONArray(i);
+                            path.add(new LatLng(coord.getDouble(1), coord.getDouble(0)));
+                        }
+
+                        runOnUiThread(() -> {
+                            if (accessibleRoutePolyline != null) {
+                                accessibleRoutePolyline.remove();
+                            }
+                            accessibleRoutePolyline = mMap.addPolyline(new PolylineOptions()
+                                    .addAll(path)
+                                    .color(Color.parseColor("#EA8C00"))  // orange
+                                    .width(12f)
+                                    .pattern(Arrays.asList(
+                                            new Dash(30f),
+                                            new Gap(20f)
+                                    ))
+                                    .startCap(new RoundCap())
+                                    .endCap(new RoundCap())
+                                    .jointType(JointType.ROUND));
+                        });
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
     private void fetchRoute(String url) {
