@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Dash;
 import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -77,7 +78,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(binding.getRoot());
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -164,13 +164,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if (hasLocationPermission()) {
-            try {
-                mMap.setMyLocationEnabled(true);
-            } catch (SecurityException e) {
-                e.printStackTrace();
-            }
+        // Fallback default location
+        LatLng defaultLatLng = new LatLng(37.441234, 24.940296);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLatLng, 15));
+
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
         }
+        mMap.setMyLocationEnabled(false);
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(37.441234, 24.940296), 15));
+
 
         mMap.setOnMapClickListener(destination -> {
             lastDestination = destination; // ✅ Track last selected destination
@@ -193,7 +198,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-
     private boolean hasLocationPermission() {
         return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -213,7 +217,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     userMarker.setPosition(currentLatLng); // update position
                 } else {
                     Bitmap original = BitmapFactory.decodeResource(getResources(), R.drawable.ic_my_location);
-                    Bitmap resized = Bitmap.createScaledBitmap(original, 80, 80, false);
+                    Bitmap resized = Bitmap.createScaledBitmap(original, 60, 60, false);
 
                     userMarker = mMap.addMarker(new MarkerOptions()
                             .position(currentLatLng)

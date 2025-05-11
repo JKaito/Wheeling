@@ -41,24 +41,6 @@
             android:textSize="16sp"
             android:importantForAutofill="yes" />
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_marginStart="8dp"
-            app:cardBackgroundColor="#4B5057"
-            android:contentDescription="@string/profile_button_description"
-            app:cardCornerRadius="200dp">
-
-            <ImageView
-                android:id="@+id/imageView"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_profile"
-                android:scaleType="fitXY"/>
-        </androidx.cardview.widget.CardView>
-
-
     </LinearLayout>
 
     <!-- Filter Buttons -->
@@ -83,6 +65,7 @@
                 android:layout_height="wrap_content"
                 style="@style/FilterButtonStyle"
                 android:text="@string/filter_food"
+                app:iconTint="@color/white"
                 app:icon="@drawable/ic_food"
                 app:iconGravity="textStart"
                 app:iconPadding="8dp" />
@@ -92,6 +75,7 @@
                 android:layout_height="wrap_content"
                 style="@style/FilterButtonStyle"
                 android:text="@string/filter_drinks"
+                app:iconTint="@color/white"
                 app:icon="@drawable/ic_drinks"
                 app:iconGravity="textStart"
                 app:iconPadding="8dp" />
@@ -100,6 +84,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="@style/FilterButtonStyle"
+                app:iconTint="@color/white"
                 android:text="@string/filter_coffee"
                 app:icon="@drawable/ic_coffee"
                 app:iconGravity="textStart"
@@ -109,6 +94,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="@style/FilterButtonStyle"
+                app:iconTint="@color/white"
                 android:text="@string/filter_hotels"
                 app:icon="@drawable/ic_hotels"
                 app:iconGravity="textStart"
