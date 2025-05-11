@@ -7,6 +7,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -77,6 +79,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -107,6 +110,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 🔹 Handle selection logic
         for (CardView card : cardIconMap.keySet()) {
             card.setOnClickListener(view -> {
+                int id = card.getId();
+
+                // ✅ Only apply travel mode logic for specific cards
+                if (id != R.id.card_car && id != R.id.card_wheelchair) {
+                    // For card_walk and card_home: just highlight, do nothing else
+                    for (Map.Entry<CardView, ImageButton> entry : cardIconMap.entrySet()) {
+                        entry.getKey().setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
+                        entry.getValue().setColorFilter(null);
+                    }
+                    card.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#379FFF")));
+                    cardIconMap.get(card).setColorFilter(Color.WHITE);
+                    return;
+                }
+
                 // Reset all cards
                 for (Map.Entry<CardView, ImageButton> entry : cardIconMap.entrySet()) {
                     entry.getKey().setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
@@ -118,13 +135,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 cardIconMap.get(card).setColorFilter(Color.WHITE);
 
                 // 🔹 Set travel mode and color
-                if (card.getId() == R.id.card_car) {
+                if (id == R.id.card_car) {
                     selectedTravelMode = "driving";
                     routeColor = Color.parseColor("#485AFF");
                 } else {
                     selectedTravelMode = "walking";
                     routeColor = Color.parseColor("#EA8C00");
                 }
+
                 // 🚨 Clear previous routes BEFORE drawing
                 if (googleRoutePolyline != null) {
                     googleRoutePolyline.remove();
@@ -142,7 +160,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if ("walking".equals(selectedTravelMode)) {
                         if (hasLocationPermission()) {
                             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                return;
+                               return;
                             }
                             fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
                                 if (location != null) {
@@ -160,6 +178,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         CardView defaultSelectedCard = findViewById(R.id.card_wheelchair);
         defaultSelectedCard.performClick(); // This ensures it uses the same styling logic
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -270,7 +289,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         googleRoutePolyline = mMap.addPolyline(new PolylineOptions()
                                                 .addAll(points)
                                                 .color(Color.parseColor("#485AFF")) // ← REMOVE this hardcoded color
-                                                .width(10));
+                                                .width(14));
                                     });
                                 }
                             } catch (JSONException e) {
@@ -333,7 +352,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             accessibleRoutePolyline = mMap.addPolyline(new PolylineOptions()
                                     .addAll(path)
                                     .color(Color.parseColor("#EA8C00"))  // orange
-                                    .width(12f)
+                                    .width(14f)
                                     .pattern(Arrays.asList(
                                             new Dash(30f),
                                             new Gap(20f)
@@ -383,7 +402,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 currentRoute = mMap.addPolyline(new PolylineOptions()
                                         .addAll(points)
                                         .color(routeColor)
-                                        .width(12)
+                                        .width(14)
                                         .pattern(Arrays.asList(new Dash(30), new Gap(20)))
                                         .startCap(new RoundCap())
                                         .endCap(new RoundCap()));

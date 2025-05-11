@@ -48,5 +48,5 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation("com.google.maps.android:android-maps-utils:2.2.5")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
+    implementation ("com.google.android.libraries.places:places:4.1.0")
 }

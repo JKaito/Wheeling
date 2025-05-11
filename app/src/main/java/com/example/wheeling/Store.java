@@ -2,7 +2,6 @@ package com.example.wheeling;
 
 import java.util.List;
 import java.util.Map;
-
 public class Store {
     private String name;
     private String type;
@@ -20,7 +19,7 @@ public class Store {
     private Map<String, String> openingHours; // e.g., {"Monday": "09:00–17:00"}
 
     // Constructor
-    public Store(String name, String type, double latitude, double longitude, String phone, String address, String website, boolean proximityAccessible, boolean entranceAccessible, boolean hasAccessibleRestroom,  List<String> imageUrls, Map<String, String> openingHours) {
+    public Store(String name, String type, double latitude, double longitude, String phone, String address, String website, boolean proximityAccessible, boolean entranceAccessible, boolean hasAccessibleRestroom, List<String> imageUrls, Map<String, String> openingHours) {
         this.name = name;
         this.type = type;
         this.latitude = latitude;
