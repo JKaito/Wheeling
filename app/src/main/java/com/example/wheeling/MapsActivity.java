@@ -7,15 +7,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Button;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.wheeling.databinding.ActivityMapsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -28,17 +30,12 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Dash;
 import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
+import com.google.android.material.button.MaterialButton;
 import com.google.maps.android.PolyUtil;
-
-import com.google.android.gms.maps.model.Dot;
 import com.google.android.gms.maps.model.Gap;
-import com.google.android.gms.maps.model.PatternItem;
-import com.google.android.gms.maps.model.RoundCap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,11 +51,13 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import android.widget.TextView;
 
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     private String selectedTravelMode = "walking";
     private LatLng lastDestination = null;
     private com.google.android.gms.maps.model.Polyline currentRoute;
@@ -66,18 +65,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private com.google.android.gms.maps.model.Marker userMarker;
     private com.google.android.gms.maps.model.Polyline googleRoutePolyline;
     private com.google.android.gms.maps.model.Polyline accessibleRoutePolyline;
-
     private int routeColor = Color.parseColor("#EA8C00"); // default orange for walking
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
+    private List<Store> allStores;
+    private StoreAdapter storeAdapter;
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // 🔹 Bottom Sheet setup
+        LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
+        BottomSheetBehavior<LinearLayout> sheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        sheetBehavior.setHideable(true); // This allows STATE_HIDDEN
+        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN); // Start hidden
+
+
+
+        RecyclerView recyclerView = findViewById(R.id.result_recycler);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        allStores = StoreList.getStores();  // Save original list
+        storeAdapter = new StoreAdapter(allStores);  // Initialize adapter with full list
+        recyclerView.setAdapter(storeAdapter);
+
+
+
+        // 🔹 Find filter buttons by ID
+        MaterialButton foodButton = findViewById(R.id.food_button);
+        MaterialButton drinksButton = findViewById(R.id.drink_button);
+        MaterialButton coffeeButton = findViewById(R.id.coffee_button);
+        MaterialButton hotelsButton = findViewById(R.id.hotel_button);
+
+        // 🔹 Shared listener to open the bottom sheet
+        foodButton.setOnClickListener(view -> {
+            filterAndDisplayStores("Restaurant"); // or "Food" if you name types that way
+            bottomSheet.setVisibility(View.VISIBLE);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        });
+
+        drinksButton.setOnClickListener(view -> {
+            filterAndDisplayStores("Drinks");
+            bottomSheet.setVisibility(View.VISIBLE);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        });
+
+        coffeeButton.setOnClickListener(view -> {
+            filterAndDisplayStores("Cafe");
+            bottomSheet.setVisibility(View.VISIBLE);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        });
+
+        hotelsButton.setOnClickListener(view -> {
+            filterAndDisplayStores("Hotel");
+            bottomSheet.setVisibility(View.VISIBLE);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        });
+
 
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -196,18 +244,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(37.441234, 24.940296), 15));
 
 
+        if (hasLocationPermission()) {
+            mMap.setMyLocationEnabled(true);
+            enableMapInteractions(); // ✅ now only added if permission is granted
+        } else {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{ Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
+                    LOCATION_PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
+    private void enableMapInteractions() {
         mMap.setOnMapClickListener(destination -> {
-            lastDestination = destination; // ✅ Track last selected destination
+            lastDestination = destination;
 
             drawGoogleRoute(destination);
 
             if (!"walking".equals(selectedTravelMode)) return;
 
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (!hasLocationPermission()) return;
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-
             fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
                 if (location != null) {
                     LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
@@ -216,6 +277,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             });
         });
     }
+
 
     private boolean hasLocationPermission() {
         return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -426,7 +488,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             try {
                 if (mMap != null) {
                     mMap.setMyLocationEnabled(true);
+                    enableMapInteractions(); // ✅ set the click listener after permission is granted
                 }
+                showUserLocation();
                 showUserLocation();
             } catch (SecurityException e) {
                 e.printStackTrace();
@@ -435,4 +499,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void filterAndDisplayStores(String type) {
+        List<Store> filtered = new java.util.ArrayList<>();
+        for (Store store : allStores) {
+            if (store.getType().equalsIgnoreCase(type)) {
+                filtered.add(store);
+            }
+        }
+
+        storeAdapter = new StoreAdapter(filtered);
+        RecyclerView recyclerView = findViewById(R.id.result_recycler);
+        recyclerView.setAdapter(storeAdapter);
+    }
+
 }

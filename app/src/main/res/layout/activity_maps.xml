@@ -1,172 +1,203 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinator"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MapsActivity">
 
-    <!-- Map Fragment -->
-
-    <!-- Search Bar -->
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <!-- Map and UI Overlay -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/search_bar_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:padding="5dp"
-        android:orientation="horizontal"
-        android:background="@drawable/search_background"
-        android:gravity="center_vertical"
-        android:elevation="4dp"
-        android:clipToPadding="false">
+        <!-- Google Map Fragment -->
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-        <EditText
-            android:id="@+id/search_input"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:hint="@string/search_hint"
-            android:inputType="text"
-            android:autofillHints="username"
-            android:background="@android:color/transparent"
-            android:paddingHorizontal="12dp"
-            android:textColor="#000000"
-            android:textColorHint="#888888"
-            android:textSize="16sp"
-            android:importantForAutofill="yes" />
-
-    </LinearLayout>
-
-    <!-- Filter Buttons -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_below="@id/search_bar_container"
-        android:padding="8dp"
-        android:fillViewport="true"
-        android:background="@android:color/transparent"
-        android:scrollbars="none">
-
+        <!-- Search Bar -->
         <LinearLayout
+            android:id="@+id/search_bar_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:padding="5dp"
+            android:orientation="horizontal"
+            android:background="@drawable/search_background"
+            android:gravity="center_vertical"
+            android:elevation="4dp"
+            android:clipToPadding="false">
+
+            <EditText
+                android:id="@+id/search_input"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:hint="@string/search_hint"
+                android:inputType="text"
+                android:autofillHints="username"
+                android:background="@android:color/transparent"
+                android:paddingHorizontal="12dp"
+                android:textColor="#000000"
+                android:textColorHint="#888888"
+                android:textSize="16sp"
+                android:importantForAutofill="yes" />
+        </LinearLayout>
+
+        <!-- Filter Buttons -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/search_bar_container"
+            android:layout_marginHorizontal="16dp"
+            android:padding="8dp"
+            android:fillViewport="true"
+            android:background="@android:color/transparent"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/food_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/FilterButtonStyle"
+                    android:text="@string/filter_food"
+                    app:iconTint="@color/white"
+                    app:icon="@drawable/ic_food"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/drink_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/FilterButtonStyle"
+                    android:text="@string/filter_drinks"
+                    app:iconTint="@color/white"
+                    app:icon="@drawable/ic_drinks"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/coffee_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/FilterButtonStyle"
+                    android:text="@string/filter_coffee"
+                    app:iconTint="@color/white"
+                    app:icon="@drawable/ic_coffee"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/hotel_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/FilterButtonStyle"
+                    android:text="@string/filter_hotels"
+                    app:iconTint="@color/white"
+                    app:icon="@drawable/ic_hotels"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Location Button -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/myLocation"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="80dp"
+            android:layout_marginEnd="20dp"
+            android:contentDescription="@string/profile_button_description"
+            app:cardCornerRadius="200dp"
+            app:cardBackgroundColor="#4B5057">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_gps_fixed"
+                android:scaleType="fitXY" />
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+
+    <!-- Bottom Sheet must be DIRECT child of CoordinatorLayout -->
+    <LinearLayout
+        android:id="@+id/bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+        android:layout_gravity="bottom"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <TextView
+            android:id="@+id/bottom_sheet_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_horizontal">
+            android:text="Category Results"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-            <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/FilterButtonStyle"
-                android:text="@string/filter_food"
-                app:iconTint="@color/white"
-                app:icon="@drawable/ic_food"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/result_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"/>
+    </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/FilterButtonStyle"
-                android:text="@string/filter_drinks"
-                app:iconTint="@color/white"
-                app:icon="@drawable/ic_drinks"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/FilterButtonStyle"
-                app:iconTint="@color/white"
-                android:text="@string/filter_coffee"
-                app:icon="@drawable/ic_coffee"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/FilterButtonStyle"
-                app:iconTint="@color/white"
-                android:text="@string/filter_hotels"
-                app:icon="@drawable/ic_hotels"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp" />
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <!-- Location Button -->
-
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/myLocation"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        app:cardBackgroundColor="#4B5057"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="80dp"
-        android:layout_marginEnd="20dp"
-        android:contentDescription="@string/profile_button_description"
-        app:cardCornerRadius="200dp">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_gps_fixed"
-            android:scaleType="fitXY"/>
-    </androidx.cardview.widget.CardView>
-
-    <!-- 🔹 Bottom Navigation -->
+    <!-- Bottom Navigation Bar - fixed at bottom -->
     <LinearLayout
         android:id="@+id/bottom_nav"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:gravity="center_vertical"
+        android:layout_gravity="bottom"
         android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:background="#ffffff"
-        android:elevation="8dp">
+        android:elevation="12dp">
 
-        <!-- Space before first icon -->
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
+        <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/card_wheelchair"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            app:cardBackgroundColor="#FFFFFF"
-            app:cardElevation="0dp"
             android:clickable="true"
             android:focusable="true"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#FFFFFF"
             android:contentDescription="@string/profile_button_description">
 
             <ImageButton
                 android:id="@+id/icon_wheelchair"
-                android:clickable="false"
-                android:focusable="false"
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
                 android:layout_gravity="center"
+                android:background="@android:color/transparent"
                 android:src="@drawable/ic_wheelchair"
                 android:scaleType="centerInside"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/nav_wheelchair"/>
+                android:contentDescription="@string/nav_wheelchair"
+                android:clickable="false"
+                android:focusable="false" />
         </androidx.cardview.widget.CardView>
 
         <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
@@ -176,23 +207,23 @@
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            app:cardElevation="0dp"
             android:clickable="true"
             android:focusable="true"
-            android:contentDescription="@string/profile_button_description"
-            app:cardBackgroundColor="#FFFFFF">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#FFFFFF"
+            android:contentDescription="@string/profile_button_description">
 
             <ImageButton
                 android:id="@+id/icon_car"
-                android:clickable="false"
-                android:focusable="false"
                 android:layout_width="match_parent"
                 android:layout_height="18dp"
                 android:layout_gravity="center"
                 android:background="@android:color/transparent"
-                android:contentDescription="@string/nav_car"
+                android:src="@drawable/ic_car"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_car" />
+                android:contentDescription="@string/nav_car"
+                android:clickable="false"
+                android:focusable="false" />
         </androidx.cardview.widget.CardView>
 
         <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
@@ -201,24 +232,24 @@
             android:id="@+id/card_walk"
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            app:cardBackgroundColor="#FFFFFF"
             android:layout_gravity="center"
-            app:cardElevation="0dp"
             android:clickable="true"
             android:focusable="true"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#FFFFFF"
             android:contentDescription="@string/profile_button_description">
 
             <ImageButton
                 android:id="@+id/icon_card_walk"
-                android:clickable="false"
-                android:focusable="false"
                 android:layout_width="match_parent"
                 android:layout_height="25dp"
                 android:layout_gravity="center"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_walk"
                 android:background="@android:color/transparent"
-                android:contentDescription="@string/nav_walk"/>
+                android:src="@drawable/ic_walk"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/nav_walk"
+                android:clickable="false"
+                android:focusable="false" />
         </androidx.cardview.widget.CardView>
 
         <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
@@ -227,29 +258,26 @@
             android:id="@+id/card_home"
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            app:cardBackgroundColor="#FFFFFF"
             android:layout_gravity="center"
-            app:cardElevation="0dp"
             android:clickable="true"
             android:focusable="true"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#FFFFFF"
             android:contentDescription="@string/profile_button_description">
 
             <ImageButton
                 android:id="@+id/icon_home"
-                android:clickable="false"
-                android:focusable="false"
                 android:layout_width="match_parent"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_home"
                 android:background="@android:color/transparent"
-                android:contentDescription="@string/nav_home"/>
+                android:src="@drawable/ic_home"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/nav_home"
+                android:clickable="false"
+                android:focusable="false" />
         </androidx.cardview.widget.CardView>
 
-        <!-- Space after last icon -->
         <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
     </LinearLayout>
-
-
-</RelativeLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
