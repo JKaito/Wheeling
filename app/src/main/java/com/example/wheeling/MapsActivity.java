@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Dash;
 import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
@@ -42,6 +44,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -72,6 +75,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
     private List<Store> allStores;
     private StoreAdapter storeAdapter;
+    private BottomSheetBehavior<LinearLayout> sheetBehavior;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,19 +84,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // 🔹 Bottom Sheet setup
         LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
-        BottomSheetBehavior<LinearLayout> sheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        sheetBehavior = BottomSheetBehavior.from(bottomSheet);
         sheetBehavior.setHideable(true); // This allows STATE_HIDDEN
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN); // Start hidden
-
-
 
         RecyclerView recyclerView = findViewById(R.id.result_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        allStores = StoreList.getStores();  // Save original list
-        storeAdapter = new StoreAdapter(allStores);  // Initialize adapter with full list
-        recyclerView.setAdapter(storeAdapter);
 
+        allStores = StoreList.getStores();  // Save original list
+        storeAdapter = new StoreAdapter(allStores, this::showStoreMarkerAndDirections);
+        recyclerView.setAdapter(storeAdapter);
 
 
         // 🔹 Find filter buttons by ID
@@ -100,10 +102,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MaterialButton drinksButton = findViewById(R.id.drink_button);
         MaterialButton coffeeButton = findViewById(R.id.coffee_button);
         MaterialButton hotelsButton = findViewById(R.id.hotel_button);
+        MaterialButton museumButton = findViewById(R.id.museum_button);
+        MaterialButton publicButton = findViewById(R.id.public_button);
+        MaterialButton shopButton = findViewById(R.id.shop_button);
 
         // 🔹 Shared listener to open the bottom sheet
         foodButton.setOnClickListener(view -> {
-            filterAndDisplayStores("Restaurant"); // or "Food" if you name types that way
+            filterAndDisplayStores("Restaurant","Food");
             bottomSheet.setVisibility(View.VISIBLE);
             sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
@@ -126,11 +131,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
+        museumButton.setOnClickListener(view -> {
+            filterAndDisplayStores("Museum");
+            bottomSheet.setVisibility(View.VISIBLE);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        });
+
+        publicButton.setOnClickListener(view -> {
+            filterAndDisplayStores("Public");
+            bottomSheet.setVisibility(View.VISIBLE);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        });
+
+        shopButton.setOnClickListener(view -> {
+            filterAndDisplayStores("Shop");
+            bottomSheet.setVisibility(View.VISIBLE);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        });
 
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         binding.myLocation.setOnClickListener(v -> {
@@ -210,12 +231,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                return;
                             }
-                            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-                                if (location != null) {
-                                    LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
-                                    fetchAccessibleRoute(origin, lastDestination);
-                                }
-                            });
+                            // ✅ Remove this block entirely from here
                         }
                     }
                 }
@@ -226,6 +242,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         CardView defaultSelectedCard = findViewById(R.id.card_wheelchair);
         defaultSelectedCard.performClick(); // This ensures it uses the same styling logic
     }
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -245,7 +262,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         if (hasLocationPermission()) {
-            mMap.setMyLocationEnabled(true);
+            mMap.setMyLocationEnabled(false);
             enableMapInteractions(); // ✅ now only added if permission is granted
         } else {
             ActivityCompat.requestPermissions(
@@ -278,7 +295,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-
     private boolean hasLocationPermission() {
         return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -293,7 +309,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
             if (location != null) {
                 LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.clear();
+                //mMap.clear();
                 if (userMarker != null) {
                     userMarker.setPosition(currentLatLng); // update position
                 } else {
@@ -431,53 +447,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void fetchRoute(String url) {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(url).build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.isSuccessful() && response.body() != null) {
-                    try {
-                        String json = response.body().string();
-                        JSONObject jsonObject = new JSONObject(json);
-                        JSONArray routes = jsonObject.getJSONArray("routes");
-                        if (routes.length() > 0) {
-                            String polyline = routes.getJSONObject(0)
-                                    .getJSONObject("overview_polyline")
-                                    .getString("points");
-                            List<LatLng> points = PolyUtil.decode(polyline);
-
-                            runOnUiThread(() -> {
-                                // Remove existing route if present
-                                if (currentRoute != null) {
-                                    currentRoute.remove();
-                                }
-
-                                // Draw new route and keep reference
-                                currentRoute = mMap.addPolyline(new PolylineOptions()
-                                        .addAll(points)
-                                        .color(routeColor)
-                                        .width(14)
-                                        .pattern(Arrays.asList(new Dash(30), new Gap(20)))
-                                        .startCap(new RoundCap())
-                                        .endCap(new RoundCap()));
-                            });
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -487,10 +456,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
             try {
                 if (mMap != null) {
-                    mMap.setMyLocationEnabled(true);
-                    enableMapInteractions(); // ✅ set the click listener after permission is granted
+                    mMap.setMyLocationEnabled(false);
+                    enableMapInteractions();
                 }
-                showUserLocation();
                 showUserLocation();
             } catch (SecurityException e) {
                 e.printStackTrace();
@@ -500,17 +468,81 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void filterAndDisplayStores(String type) {
-        List<Store> filtered = new java.util.ArrayList<>();
+    private void filterAndDisplayStores(String... acceptedTypes) {
+        List<Store> filtered = new ArrayList<>();
+        List<String> targetTypes = Arrays.asList(acceptedTypes);
+
         for (Store store : allStores) {
-            if (store.getType().equalsIgnoreCase(type)) {
-                filtered.add(store);
+            for (String tag : store.getTypes()) {
+                if (targetTypes.contains(tag)) {
+                    filtered.add(store);
+                    break;
+                }
             }
         }
+        Log.d("Filter", "Filtering for: " + Arrays.toString(acceptedTypes));
+        for (Store store : filtered) {
+            Log.d("Match", "Matched store: " + store.getName() + " with types: " + store.getTypes());
+        }
 
-        storeAdapter = new StoreAdapter(filtered);
+        storeAdapter = new StoreAdapter(filtered, this::showStoreMarkerAndDirections);
         RecyclerView recyclerView = findViewById(R.id.result_recycler);
         recyclerView.setAdapter(storeAdapter);
+        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
     }
 
+    private void showStoreMarkerAndDirections(Store store) {
+        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+        LatLng storeLatLng = new LatLng(store.getLatitude(), store.getLongitude());
+        lastDestination = storeLatLng;
+
+        // Accessibility color logic (adjust filenames as needed)
+        int pinIcon;
+        if (store.isEntranceAccessible() && store.isProximityAccessible() && store.isHasAccessibleRestroom()) {
+            pinIcon = R.drawable.pin_green;
+        } else if (!store.isEntranceAccessible() && !store.isProximityAccessible() && !store.isHasAccessibleRestroom()) {
+            pinIcon = R.drawable.pin_red;
+        } else {
+            pinIcon = R.drawable.pin_orange;
+        }
+
+        Bitmap original = BitmapFactory.decodeResource(getResources(), pinIcon);
+        Bitmap resized = Bitmap.createScaledBitmap(original, 75, 75, false);
+
+        if (destinationMarker != null) {
+            destinationMarker.remove();
+        }
+
+        destinationMarker = mMap.addMarker(new MarkerOptions()
+                .position(storeLatLng)
+                .title(store.getName())
+                .icon(BitmapDescriptorFactory.fromBitmap(resized))
+        );
+
+        if (hasLocationPermission()) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null) {
+                    LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
+
+                    drawGoogleRoute(storeLatLng);
+
+                    if ("walking".equals(selectedTravelMode)) {
+                        fetchAccessibleRoute(origin, storeLatLng);
+                    }
+
+                    // 🔍 Fit route in view
+                    LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+                    boundsBuilder.include(origin);
+                    boundsBuilder.include(storeLatLng);
+                    LatLngBounds bounds = boundsBuilder.build();
+                    int padding = 170;
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+                }
+            });
+        }
+    }
 }

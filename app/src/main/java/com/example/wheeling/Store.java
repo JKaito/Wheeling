@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 public class Store {
     private String name;
-    private String type;
+    private List<String> types;
     private double latitude;
     private double longitude;
 
@@ -19,9 +19,12 @@ public class Store {
     private Map<String, String> openingHours; // e.g., {"Monday": "09:00–17:00"}
 
     // Constructor
-    public Store(String name, String type, double latitude, double longitude, String phone, String address, String website, boolean proximityAccessible, boolean entranceAccessible, boolean hasAccessibleRestroom, List<String> imageUrls, Map<String, String> openingHours) {
+    public Store(String name, List<String> types, double latitude, double longitude,
+                 String phone, String address, String website,
+                 boolean proximityAccessible, boolean entranceAccessible, boolean hasAccessibleRestroom,
+                 List<String> imageUrls, Map<String, String> openingHours) {
         this.name = name;
-        this.type = type;
+        this.types = types;
         this.latitude = latitude;
         this.longitude = longitude;
         this.phone = phone;
@@ -36,7 +39,8 @@ public class Store {
 
     // Getters and setters (you can generate these automatically in Android Studio)
     public String getName() { return name; }
-    public String getType() { return type; }
+
+    public List<String> getTypes() { return types;}
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
     public String getPhone() { return phone; }

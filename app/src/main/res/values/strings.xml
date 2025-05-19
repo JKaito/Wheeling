@@ -13,6 +13,11 @@
     <string name="filter_drinks">Drinks</string>
     <string name="filter_coffee">Coffee</string>
     <string name="filter_hotels">Hotels</string>
+    <string name="filter_services">Services</string>
+    <string name="filter_public">Public</string>
+    <string name="filter_museum">Museum</string>
+    <string name="filter_shop">Shop</string>
+
 
     <string name="profile_button_description">Open profile</string>
 

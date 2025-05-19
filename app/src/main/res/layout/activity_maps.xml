@@ -75,6 +75,7 @@
                     app:iconTint="@color/white"
                     app:icon="@drawable/ic_food"
                     app:iconGravity="textStart"
+                    android:textAllCaps="false"
                     app:iconPadding="8dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -86,6 +87,7 @@
                     app:iconTint="@color/white"
                     app:icon="@drawable/ic_drinks"
                     app:iconGravity="textStart"
+                    android:textAllCaps="false"
                     app:iconPadding="8dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -97,6 +99,7 @@
                     app:iconTint="@color/white"
                     app:icon="@drawable/ic_coffee"
                     app:iconGravity="textStart"
+                    android:textAllCaps="false"
                     app:iconPadding="8dp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -108,7 +111,45 @@
                     app:iconTint="@color/white"
                     app:icon="@drawable/ic_hotels"
                     app:iconGravity="textStart"
+                    android:textAllCaps="false"
                     app:iconPadding="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/museum_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/FilterButtonStyle"
+                    android:text="@string/filter_museum"
+                    app:iconTint="@color/white"
+                    app:icon="@drawable/ic_museum"
+                    android:textAllCaps="false"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/public_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/FilterButtonStyle"
+                    android:text="@string/filter_public"
+                    app:iconTint="@color/white"
+                    app:icon="@drawable/ic_services"
+                    android:textAllCaps="false"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/shop_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/FilterButtonStyle"
+                    android:text="@string/filter_shop"
+                    app:iconTint="@color/white"
+                    app:icon="@drawable/ic_shop"
+                    app:iconGravity="textStart"
+                    android:textAllCaps="false"
+                    app:iconPadding="8dp" />
+
             </LinearLayout>
         </HorizontalScrollView>
 
@@ -151,6 +192,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Category Results"
+            android:paddingBottom="10dp"
             android:textSize="18sp"
             android:textStyle="bold" />
 
