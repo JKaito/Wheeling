@@ -181,20 +181,11 @@
         android:layout_width="match_parent"
         android:layout_height="500dp"
         android:layout_gravity="bottom"
-        android:background="@android:color/white"
+        android:background="#464D56"
         android:elevation="8dp"
         android:orientation="vertical"
         android:padding="16dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
-
-        <TextView
-            android:id="@+id/bottom_sheet_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Category Results"
-            android:paddingBottom="10dp"
-            android:textSize="18sp"
-            android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/result_recycler"
