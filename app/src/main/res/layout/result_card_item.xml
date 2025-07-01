@@ -98,11 +98,12 @@
                     <!-- Phone Icon Button -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_call"
-                        android:layout_width="40dp"
+                        android:layout_width="35dp"
                         android:layout_height="40dp"
-                        android:layout_marginStart="8dp"
+                        android:layout_marginStart="20dp"
+                        android:paddingRight="17dp"
                         android:backgroundTint="@android:color/transparent"
-                        android:gravity="center"
+                        android:gravity="center_horizontal"
                         app:icon="@drawable/ic_phone"
                         app:iconTint="@android:color/white"
                         app:iconSize="20dp"

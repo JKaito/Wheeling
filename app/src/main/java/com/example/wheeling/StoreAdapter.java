@@ -1,6 +1,10 @@
 package com.example.wheeling;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +15,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.button.MaterialButton;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -71,7 +77,16 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
             image.setImageResource(R.drawable.storeimage);
             holder.imageRow.addView(image);
         }
+
+        holder.callButton.setOnClickListener(v -> {
+            String phone = store.getPhone(); // assuming getPhone() returns the phone number as a String
+            Intent intent = new Intent(Intent.ACTION_DIAL);
+            intent.setData(Uri.parse("tel:" + phone));
+            v.getContext().startActivity(intent);
+        });
     }
+
+
 
     private String getOpeningStatus(Store store) {
         Map<String, String> hours = store.getOpeningHours();
@@ -132,6 +147,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
 
     static class StoreViewHolder extends RecyclerView.ViewHolder {
         Button directionsButton;
+        MaterialButton callButton;
         TextView placeName, status;
         LinearLayout imageRow;
         View accessibilityBar;
@@ -142,7 +158,8 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
             placeName = itemView.findViewById(R.id.place_name);
             status = itemView.findViewById(R.id.place_status);
             imageRow = itemView.findViewById(R.id.image_row);
-            accessibilityBar = itemView.findViewById(R.id.accessibility_bar); // <-- make sure this matches your layout
+            accessibilityBar = itemView.findViewById(R.id.accessibility_bar);
+            callButton = itemView.findViewById(R.id.btn_call);
         }
     }
 }
