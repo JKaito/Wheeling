@@ -1,15 +1,20 @@
 package com.example.wheeling;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -20,6 +25,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.wheeling.databinding.ActivityMapsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -77,23 +83,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private StoreAdapter storeAdapter;
     private BottomSheetBehavior<LinearLayout> sheetBehavior;
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // 🔹 Bottom Sheet setup
+        // ↓ THIS must match the view with app:layout_behavior above
         LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
         sheetBehavior = BottomSheetBehavior.from(bottomSheet);
-        sheetBehavior.setHideable(true); // This allows STATE_HIDDEN
-        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN); // Start hidden
+
+        // Now you can set initial state, peek height, callbacks, etc.
+        sheetBehavior.setHideable(true);
+        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
         RecyclerView recyclerView = findViewById(R.id.result_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-
         allStores = StoreList.getStores();  // Save original list
-        storeAdapter = new StoreAdapter(allStores, this::showStoreMarkerAndDirections);
+        storeAdapter = new StoreAdapter(allStores,this::showStoreDetails,this::showStoreMarkerAndDirections  // ← directions icon
+        );
         recyclerView.setAdapter(storeAdapter);
 
 
@@ -110,43 +119,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         foodButton.setOnClickListener(view -> {
             filterAndDisplayStores("Restaurant","Food");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         });
 
         drinksButton.setOnClickListener(view -> {
             filterAndDisplayStores("Drinks");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         });
 
         coffeeButton.setOnClickListener(view -> {
             filterAndDisplayStores("Cafe");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         });
 
         hotelsButton.setOnClickListener(view -> {
             filterAndDisplayStores("Hotel");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         });
 
         museumButton.setOnClickListener(view -> {
             filterAndDisplayStores("Museum");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         });
 
         publicButton.setOnClickListener(view -> {
             filterAndDisplayStores("Public");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         });
 
         shopButton.setOnClickListener(view -> {
             filterAndDisplayStores("Shop");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         });
 
 
@@ -243,6 +252,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         defaultSelectedCard.performClick(); // This ensures it uses the same styling logic
     }
 
+
+    private void showStoreDetails(Store store) {
+        // 1) grab the two half-sheets
+        RecyclerView results     = findViewById(R.id.result_recycler);
+        View         detailCard  = findViewById(R.id.detail_container);  // ← use the include’s ID!
+
+        // 2) swap them
+        results.setVisibility(View.GONE);
+        detailCard.setVisibility(View.VISIBLE);
+
+        // 3) pull out all of your sub-views (same IDs as in detail_card_item.xml)
+        TextView    nameView       = detailCard.findViewById(R.id.place_name);
+        TextView    statusView     = detailCard.findViewById(R.id.place_status);
+        MaterialButton btnDirections = detailCard.findViewById(R.id.btn_directions);
+        MaterialButton btnAssistant  = detailCard.findViewById(R.id.btn_assistant);
+        ImageButton bookmarkView   = detailCard.findViewById(R.id.bookmark_icon);
+        ImageView   mainImageView  = detailCard.findViewById(R.id.main_image);
+        LinearLayout thumbRow      = detailCard.findViewById(R.id.image_row);
+        TextView    addressView    = detailCard.findViewById(R.id.place_address);
+        TextView    websiteView    = detailCard.findViewById(R.id.place_website);
+        MaterialButton btnPath       = detailCard.findViewById(R.id.btn_path);
+
+        // 4) populate with your Store model
+        nameView.setText(store.getName());
+        addressView.setText(store.getAddress());
+        websiteView.setText(store.getWebsite());
+
+        // 5) wire the buttons
+        btnPath      .setEnabled(store.isProximityAccessible());
+
+        // 6) load your images (using Glide)
+        List<String> urls = store.getImageUrls();
+        if (!urls.isEmpty()) {
+            Glide.with(this).load(urls.get(0)).into(mainImageView);
+            thumbRow.removeAllViews();
+            for (String u : urls) {
+                ImageView iv = new ImageView(this);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(200, 200);
+                lp.setMargins(8, 0, 8, 0);
+                iv.setLayoutParams(lp);
+                iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                Glide.with(this).load(u).into(iv);
+                thumbRow.addView(iv);
+            }
+        }
+
+        // 7) finally expand the sheet
+        BottomSheetBehavior.from(findViewById(R.id.bottom_sheet))
+                .setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -485,7 +544,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d("Match", "Matched store: " + store.getName() + " with types: " + store.getTypes());
         }
 
-        storeAdapter = new StoreAdapter(filtered, this::showStoreMarkerAndDirections);
+        storeAdapter = new StoreAdapter(filtered,this::showStoreDetails,this::showStoreMarkerAndDirections);
         RecyclerView recyclerView = findViewById(R.id.result_recycler);
         recyclerView.setAdapter(storeAdapter);
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);

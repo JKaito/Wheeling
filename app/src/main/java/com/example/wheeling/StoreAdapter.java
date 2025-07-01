@@ -27,16 +27,23 @@ import java.util.Locale;
 import java.util.Map;
 
 public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHolder> {
-    private final List<Store> stores;
-
-    public interface OnDirectionsClickListener {void onDirectionsClick(Store store);
+    public interface OnItemClickListener {
+        void onItemClick(Store store);
+    }
+    public interface OnDirectionClickListener {
+        void onDirectionClick(Store store);
     }
 
-    private final OnDirectionsClickListener listener;
+    private final List<Store> stores;
+    private final OnItemClickListener itemClickListener;
+    private final OnDirectionClickListener directionClickListener;
 
-    public StoreAdapter(List<Store> stores, OnDirectionsClickListener listener) {
+    public StoreAdapter(List<Store> stores,
+                        OnItemClickListener itemClickListener,
+                        OnDirectionClickListener directionClickListener) {
         this.stores = stores;
-        this.listener = listener;
+        this.itemClickListener = itemClickListener;
+        this.directionClickListener = directionClickListener;
     }
 
 
@@ -57,12 +64,15 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
         String statusText = getOpeningStatus(store);
         holder.status.setText(statusText);
 
-        holder.directionsButton.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onDirectionsClick(store);
-            }
-        });
+        // 1️⃣ Card tap swaps to detail
+        holder.itemView.setOnClickListener(v ->
+                itemClickListener.onItemClick(store)
+        );
 
+        // 2️⃣ Directions icon still launches navigation
+        holder.directionsButton.setOnClickListener(v ->
+                directionClickListener.onDirectionClick(store)
+        );
         // Accessibility color
         if (holder.accessibilityBar != null) {
             holder.accessibilityBar.setBackgroundColor(getAccessibilityColor(store));
@@ -85,8 +95,6 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
             v.getContext().startActivity(intent);
         });
     }
-
-
 
     private String getOpeningStatus(Store store) {
         Map<String, String> hours = store.getOpeningHours();

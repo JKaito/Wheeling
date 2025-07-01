@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/detail_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        android:layout_margin="16dp">
+
+        <!-- OUTER horizontal wrapper -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- INNER vertical content -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Accessibility header bar -->
+                <TextView
+                    android:id="@+id/accessibility_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@color/quantum_purple500"
+                    android:gravity="center"
+                    android:text="ACCESSIBLE"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"/>
+
+                <!-- Grey info section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="#4E5661"
+                    android:padding="15dp">
+
+                    <!-- Your place name + bookmark icon -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/place_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Petrino"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold"/>
+
+                        <ImageButton
+                            android:id="@+id/bookmark_icon"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_alignParentEnd="true"
+                            android:backgroundTint="@android:color/transparent"
+                            app:icon="@drawable/ic_home"
+                            app:iconTint="@android:color/white"/>
+                    </RelativeLayout>
+
+                    <!-- Open/close status -->
+                    <TextView
+                        android:id="@+id/place_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Open – Closes at 00:00"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"/>
+
+                    <!-- Action buttons row -->
+                    <LinearLayout
+                        android:id="@+id/actions_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_directions"
+                            style="@style/OutlinedButtonStyle"
+                            android:text="Directions"
+                            app:icon="@drawable/ic_direction"
+                            app:iconGravity="textStart"
+                            app:iconTint="@android:color/white"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_assistant"
+                            style="@style/OutlinedButtonStyle"
+                            android:layout_marginStart="8dp"
+                            android:text="Assistant"
+                            app:icon="@drawable/ic_walk"
+                            app:iconGravity="textStart"
+                            app:iconTint="@android:color/white"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_call"
+                            android:layout_width="35dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="20dp"
+                            android:paddingRight="17dp"
+                            android:backgroundTint="@android:color/transparent"
+                            android:gravity="center_horizontal"
+                            app:icon="@drawable/ic_phone"
+                            app:iconTint="@android:color/white"
+                            app:iconSize="20dp"
+                            app:iconGravity="textStart"/>
+                    </LinearLayout>
+
+                    <!-- Main image + thumbnail strip -->
+                    <ImageView
+                        android:id="@+id/main_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"/>
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:scrollbars="none">
+                        <LinearLayout
+                            android:id="@+id/image_row"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"/>
+                    </HorizontalScrollView>
+
+                    <!-- Address, website, dividers… -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="12dp"
+                        android:background="@android:color/darker_gray"/>
+
+                    <TextView
+                        android:id="@+id/place_address"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawablePadding="8dp"
+                        android:textColor="@android:color/white"/>
+
+                    <TextView
+                        android:id="@+id/place_website"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:drawablePadding="8dp"
+                        android:textColor="@android:color/white"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="12dp"
+                        android:background="@android:color/darker_gray"/>
+
+                    <!-- Final accessibility buttons -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tv_accessible_facility"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Accessible Facility"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_path"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Accessible Path to the Facility"/>
+                </LinearLayout>
+                <!-- /Grey info section -->
+
+            </LinearLayout>
+            <!-- /INNER vertical content -->
+
+        </LinearLayout>
+        <!-- /OUTER horizontal wrapper -->
+
+    </androidx.cardview.widget.CardView>
+</LinearLayout>

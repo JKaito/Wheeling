@@ -49,4 +49,8 @@ dependencies {
     implementation("com.google.maps.android:android-maps-utils:2.2.5")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation ("com.google.android.libraries.places:places:4.1.0")
+    // core Glide runtime
+    implementation ("com.github.bumptech.glide:glide:4.12.0")
+    // annotation processor for generated API
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
 }
