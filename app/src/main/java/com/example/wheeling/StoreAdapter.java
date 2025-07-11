@@ -2,7 +2,9 @@ package com.example.wheeling;
 
 import static androidx.core.content.ContextCompat.startActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -22,9 +24,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+
 
 public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHolder> {
     public interface OnItemClickListener {
@@ -59,6 +64,32 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
     public void onBindViewHolder(@NonNull StoreViewHolder holder, int position) {
         Store store = stores.get(position);
         holder.placeName.setText(store.getName());
+
+        if (store.isFavourite()) {
+            holder.bookmarkIcon.setIconResource(R.drawable.ic_favourite_on);
+        } else {
+            holder.bookmarkIcon.setIconResource(R.drawable.ic_favourite_off);
+        }
+
+        holder.bookmarkIcon.setOnClickListener(v -> {
+            boolean nowFav = !store.isFavourite();
+            store.setFavourite(nowFav);
+
+            // update icon
+            holder.bookmarkIcon.setIconResource(
+                    nowFav
+                            ? R.drawable.ic_favourite_on
+                            : R.drawable.ic_favourite_off
+            );
+
+            // persist change
+            Context ctx = v.getContext();
+            SharedPreferences prefs2 = ctx.getSharedPreferences("favorites", Context.MODE_PRIVATE);
+            Set<String> newSet = new HashSet<>(prefs2.getStringSet("favStores", new HashSet<>()));
+            if (nowFav) newSet.add(store.getName());
+            else        newSet.remove(store.getName());
+            prefs2.edit().putStringSet("favStores", newSet).apply();
+        });
 
         // Opening status
         String statusText = getOpeningStatus(store);
@@ -159,6 +190,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
         TextView placeName, status;
         LinearLayout imageRow;
         View accessibilityBar;
+        MaterialButton bookmarkIcon;
 
         StoreViewHolder(View itemView) {
             super(itemView);
@@ -168,6 +200,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
             imageRow = itemView.findViewById(R.id.image_row);
             accessibilityBar = itemView.findViewById(R.id.accessibility_bar);
             callButton = itemView.findViewById(R.id.btn_call);
+            bookmarkIcon = itemView.findViewById(R.id.bookmark_icon);
         }
     }
 }

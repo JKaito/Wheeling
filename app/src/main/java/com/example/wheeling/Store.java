@@ -39,9 +39,8 @@ public class Store {
         this.favourite = favourite;
     }
 
-    // Getters and setters (you can generate these automatically in Android Studio)
+    // Getters and setters
     public String getName() { return name; }
-
     public List<String> getTypes() { return types;}
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
@@ -53,5 +52,6 @@ public class Store {
     public boolean isHasAccessibleRestroom() { return hasAccessibleRestroom; }
     public List<String> getImageUrls() { return imageUrls; }
     public Map<String, String> getOpeningHours() { return openingHours; }
-    public boolean favourite() { return favourite; }
+    public boolean isFavourite() { return favourite; }
+    public void setFavourite(boolean fav) { this.favourite = fav; }
 }

@@ -2,6 +2,7 @@ package com.example.wheeling;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -53,8 +54,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -101,8 +104,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         allStores = StoreList.getStores();  // Save original list
-        storeAdapter = new StoreAdapter(allStores,this::showStoreDetails,this::showStoreMarkerAndDirections  // ← directions icon
-        );
+        storeAdapter = new StoreAdapter(allStores,this::showStoreDetails,this::showStoreMarkerAndDirections);
+        SharedPreferences prefs = getSharedPreferences("favorites", MODE_PRIVATE);
+        Set<String> favNames = prefs.getStringSet("favStores", new HashSet<>());
+
+        for (Store s : allStores) {
+            s.setFavourite(favNames.contains(s.getName()));
+        }
+        storeAdapter = new StoreAdapter(allStores,this::showStoreDetails,this::showStoreMarkerAndDirections);
+
         recyclerView.setAdapter(storeAdapter);
 
 
