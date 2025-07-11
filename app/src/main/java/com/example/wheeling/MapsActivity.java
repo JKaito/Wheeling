@@ -119,43 +119,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         foodButton.setOnClickListener(view -> {
             filterAndDisplayStores("Restaurant","Food");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
         drinksButton.setOnClickListener(view -> {
             filterAndDisplayStores("Drinks");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
         coffeeButton.setOnClickListener(view -> {
             filterAndDisplayStores("Cafe");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
         hotelsButton.setOnClickListener(view -> {
             filterAndDisplayStores("Hotel");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
         museumButton.setOnClickListener(view -> {
             filterAndDisplayStores("Museum");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
         publicButton.setOnClickListener(view -> {
             filterAndDisplayStores("Public");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
         shopButton.setOnClickListener(view -> {
             filterAndDisplayStores("Shop");
             bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         });
 
 

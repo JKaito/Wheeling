@@ -177,9 +177,12 @@
     <LinearLayout
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="600dp"
         android:orientation="vertical"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_peekHeight="80dp"
+        app:behavior_fitToContents="false"
+        app:behavior_expandedOffset="350dp">
 
         <!-- Static gray container (never scrolls) -->
         <FrameLayout
@@ -188,15 +191,16 @@
             android:layout_height="match_parent"
             android:background="#464D56"
             android:paddingHorizontal="15dp"
-            android:paddingVertical="30dp">
+            android:paddingTop="30dp"
+            android:paddingBottom="60dp">
 
             <!-- ONLY this RecyclerView scrolls -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/result_recycler"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/quantum_googred500"
-                android:nestedScrollingEnabled="true"/>
+                android:nestedScrollingEnabled="true"
+                android:paddingBottom="110dp"/>
 
             <!-- Your detail card, fully static -->
             <include

@@ -43,14 +43,15 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/bookmark_icon"
-                        android:layout_width="30dp"
+                        android:layout_width="20dp"
                         android:layout_height="30dp"
                         android:layout_alignParentEnd="true"
                         android:backgroundTint="@android:color/transparent"
                         android:gravity="center"
-                        app:icon="@drawable/ic_home"
+                        app:icon="@drawable/ic_favourite_off"
                         app:iconGravity="textStart"
-                        app:iconSize="16dp"
+                        app:iconSize="19dp"
+                        app:iconPadding="0dp"
                         app:iconTint="@android:color/white"
                         app:rippleColor="@android:color/transparent"/>
 

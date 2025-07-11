@@ -17,12 +17,13 @@ public class Store {
     private boolean hasAccessibleRestroom;   // Accessible toilets
     private List<String> imageUrls;
     private Map<String, String> openingHours; // e.g., {"Monday": "09:00–17:00"}
+    private boolean favourite; //Is it in the favourite list
 
     // Constructor
     public Store(String name, List<String> types, double latitude, double longitude,
                  String phone, String address, String website,
                  boolean proximityAccessible, boolean entranceAccessible, boolean hasAccessibleRestroom,
-                 List<String> imageUrls, Map<String, String> openingHours) {
+                 List<String> imageUrls, Map<String, String> openingHours,boolean favourite) {
         this.name = name;
         this.types = types;
         this.latitude = latitude;
@@ -35,6 +36,7 @@ public class Store {
         this.hasAccessibleRestroom = hasAccessibleRestroom;
         this.imageUrls = imageUrls;
         this.openingHours = openingHours;
+        this.favourite = favourite;
     }
 
     // Getters and setters (you can generate these automatically in Android Studio)
@@ -51,4 +53,5 @@ public class Store {
     public boolean isHasAccessibleRestroom() { return hasAccessibleRestroom; }
     public List<String> getImageUrls() { return imageUrls; }
     public Map<String, String> getOpeningHours() { return openingHours; }
+    public boolean favourite() { return favourite; }
 }
