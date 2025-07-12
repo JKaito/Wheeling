@@ -192,7 +192,8 @@
             android:background="#464D56"
             android:paddingHorizontal="15dp"
             android:paddingTop="30dp"
-            android:paddingBottom="60dp">
+            android:paddingBottom="60dp"
+            android:elevation="8dp">
 
             <!-- ONLY this RecyclerView scrolls -->
             <androidx.recyclerview.widget.RecyclerView
@@ -211,6 +212,18 @@
                 android:layout_height="match_parent"/>
         </FrameLayout>
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/chat_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="60dp"
+        android:layout_gravity="top"
+        android:visibility="gone"
+        android:elevation="16dp">
+
+        <include layout="@layout/chat_activity" />
+    </FrameLayout>
 
     <!-- Bottom Navigation Bar - fixed at bottom -->
     <LinearLayout

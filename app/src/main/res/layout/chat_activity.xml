@@ -1,0 +1,315 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="#3A414B">
+
+    <!-- Top App Bar -->
+    <LinearLayout
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#2F353D"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_profile"
+            android:layout_marginEnd="10dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Assistant Chat"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Active users now 5"
+                android:textColor="#AAB2BB"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="16dp"
+            android:elevation="40dp"
+            android:src="@drawable/ic_gps_fixed" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_info" />
+    </LinearLayout>
+
+    <!-- Center icon and message -->
+    <LinearLayout
+        android:id="@+id/layout_give_location"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_centerInParent="true"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/location_icon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_location_target"
+            android:elevation="50dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Location icon"
+            android:alpha="0.2" />
+
+        <TextView
+            android:layout_marginTop="20dp"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="Pin your LOCATION and an assistant will help you."
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_reason_picker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_centerInParent="true"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:text="To better assist you please choose the reason for requesting help:"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:textColor="#FFFFFF"
+            android:background="#33B5E5"
+            android:padding="12dp"
+            android:textSize="15sp"/>
+
+        <!-- Icons Row -->
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:paddingVertical="20dp"
+            android:background="#33B5E5"
+            android:gravity="center">
+
+            <!-- Stairs -->
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="8dp">
+
+                <ImageButton
+                    android:id="@+id/btn_stairs"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="#33B5E5"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/ic_stairs"
+                    android:scaleType="fitCenter"/>
+
+                <TextView
+                    android:text="Stairs"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:textAlignment="center"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginTop="6dp"/>
+            </LinearLayout>
+
+            <!-- Stairs -->
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="8dp">
+
+                <ImageButton
+                    android:id="@+id/btn_roughroad"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="#33B5E5"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/ic_roughroad"
+                    android:scaleType="fitCenter"/>
+
+                <TextView
+                    android:text="Rough road"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:textAlignment="center"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginTop="6dp"/>
+            </LinearLayout>
+
+
+            <!-- Stairs -->
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="8dp">
+
+                <ImageButton
+                    android:id="@+id/btn_uphill"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="#33B5E5"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/ic_uphill"
+                    android:scaleType="fitCenter"/>
+
+                <TextView
+                    android:text="Uphill"
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:textAlignment="center"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginTop="6dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button
+            android:layout_height="40dp"
+            android:layout_width="300dp"
+            android:id="@+id/btn_skip_reason"
+            android:text="Skip"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+    <!-- Pin location instruction (optional floating hint) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_below="@id/top_bar"
+        android:background="#2D343E"
+        android:layout_centerHorizontal="true"
+        android:paddingVertical="12dp"
+        android:paddingLeft="70dp">
+
+        <TextView
+            android:text="Press"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#CCCCCC"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/ic_location_target" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="to pin your location to the chat"
+            android:textColor="#CCCCCC"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Bottom Input Bar -->
+    <LinearLayout
+        android:id="@+id/bottom_input_bar"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#2F353D"
+        android:paddingHorizontal="8dp">
+
+        <ImageButton
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_camera"
+            android:scaleType="fitCenter"
+            android:padding="4dp"
+            android:contentDescription="Camera" />
+
+        <ImageButton
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_gallery"
+            android:scaleType="fitCenter"
+            android:padding="4dp"
+            android:contentDescription="Gallery" />
+
+        <ImageButton
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_mic"
+            android:scaleType="fitCenter"
+            android:padding="4dp"
+            android:contentDescription="Mic" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="8dp">
+
+            <EditText
+                android:id="@+id/chat_input"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/chat_input_bg"
+                android:hint="Aa"
+                android:paddingStart="16dp"
+                android:paddingEnd="40dp"
+                android:textColor="#000000"
+                android:textColorHint="#888888"
+                android:gravity="center_vertical"
+                android:textSize="15sp"/>
+
+            <ImageButton
+                android:id="@+id/send_button"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="12dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_send"
+                android:contentDescription="Send"
+                android:scaleType="fitCenter"
+                app:tint="#888888" />
+        </FrameLayout>
+    </LinearLayout>
+</RelativeLayout>

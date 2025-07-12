@@ -14,6 +14,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -85,12 +87,81 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Store> allStores;
     private StoreAdapter storeAdapter;
     private BottomSheetBehavior<LinearLayout> sheetBehavior;
+    private FrameLayout chatOverlay;
+    private ImageButton iconWalk;
+    private boolean isChatOverlayVisible = false;
+    private LinearLayout layoutGiveLocation, layoutReasonPicker;
+    private ImageView locationIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // ↓ This is for the chat layout
+        CardView cardWalk = findViewById(R.id.card_walk);
+        FrameLayout chatOverlay = findViewById(R.id.chat_overlay);
+
+        cardWalk.setOnClickListener(v -> {
+            if (chatOverlay.getVisibility() == View.VISIBLE) {
+                chatOverlay.setVisibility(View.GONE);
+            } else {
+                chatOverlay.setVisibility(View.VISIBLE);
+            }
+
+            Toast.makeText(this, "Clicked walk tab", Toast.LENGTH_SHORT).show();  // ✅ Debug helper
+        });
+
+        // These are inside the chat_overlay, which is part of MapsActivity layout now
+        layoutGiveLocation = findViewById(R.id.layout_give_location);
+        layoutReasonPicker = findViewById(R.id.layout_reason_picker);
+        locationIcon = findViewById(R.id.location_icon);
+
+        // Add click listener to toggle visibility
+        locationIcon.setOnClickListener(v -> {
+            layoutGiveLocation.setVisibility(View.GONE);
+            layoutReasonPicker.setVisibility(View.VISIBLE);
+        });
+        ImageButton btnStairs = findViewById(R.id.btn_stairs);
+        ImageButton btnRough = findViewById(R.id.btn_roughroad);
+        ImageButton btnUphill = findViewById(R.id.btn_uphill);
+
+        final ImageButton[] selectedButton = {null};
+
+        Map<ImageButton, Integer> defaultIcons = new HashMap<>();
+        Map<ImageButton, Integer> orangeIcons = new HashMap<>();
+
+        defaultIcons.put(btnStairs, R.drawable.ic_stairs);
+        orangeIcons.put(btnStairs, R.drawable.ic_stairs_orange);
+
+        defaultIcons.put(btnRough, R.drawable.ic_roughroad);
+        orangeIcons.put(btnRough, R.drawable.ic_roughroad_orange);
+
+        defaultIcons.put(btnUphill, R.drawable.ic_uphill);
+        orangeIcons.put(btnUphill, R.drawable.ic_uphill_orange);
+
+        View.OnClickListener reasonClickListener = v -> {
+            ImageButton clicked = (ImageButton) v;
+
+            if (selectedButton[0] == clicked) {
+                // Deselect if already selected
+                clicked.setImageResource(defaultIcons.get(clicked));
+                selectedButton[0] = null;
+            } else {
+                // Deselect previous
+                if (selectedButton[0] != null) {
+                    selectedButton[0].setImageResource(defaultIcons.get(selectedButton[0]));
+                }
+                // Select new
+                clicked.setImageResource(orangeIcons.get(clicked));
+                selectedButton[0] = clicked;
+            }
+        };
+
+        btnStairs.setOnClickListener(reasonClickListener);
+        btnRough.setOnClickListener(reasonClickListener);
+        btnUphill.setOnClickListener(reasonClickListener);
 
         // ↓ THIS must match the view with app:layout_behavior above
         LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
@@ -203,19 +274,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 🔹 Handle selection logic
         for (CardView card : cardIconMap.keySet()) {
             card.setOnClickListener(view -> {
-                int id = card.getId();
+                int id = view.getId();
 
-                // ✅ Only apply travel mode logic for specific cards
-                if (id != R.id.card_car && id != R.id.card_wheelchair) {
-                    // For card_walk and card_home: just highlight, do nothing else
-                    for (Map.Entry<CardView, ImageButton> entry : cardIconMap.entrySet()) {
-                        entry.getKey().setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
-                        entry.getValue().setColorFilter(null);
-                    }
-                    card.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#379FFF")));
-                    cardIconMap.get(card).setColorFilter(Color.WHITE);
-                    return;
+                // Only highlight logic for home and walk
+                for (Map.Entry<CardView, ImageButton> entry : cardIconMap.entrySet()) {
+                    entry.getKey().setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
+                    entry.getValue().setColorFilter(null);
                 }
+
+                 // Highlight the selected card
+                card.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#379FFF")));
+                cardIconMap.get(card).setColorFilter(Color.WHITE);
+
+
+                // Handle travel mode logic
+                if (id == R.id.card_car) {
+                    selectedTravelMode = "driving";
+                    routeColor = Color.parseColor("#485AFF");
+                } else if (id == R.id.card_wheelchair) {
+                    selectedTravelMode = "wheelchair";
+                    routeColor = Color.parseColor("#FF9900");
+                } else {
+                    selectedTravelMode = "walking";
+                    routeColor = Color.parseColor("#EA8C00");
+                }
+
+                // Show chat overlay only when walk is selected
+                chatOverlay.setVisibility(id == R.id.card_walk ? View.VISIBLE : View.GONE);
 
                 // Reset all cards
                 for (Map.Entry<CardView, ImageButton> entry : cardIconMap.entrySet()) {
@@ -255,7 +340,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                return;
                             }
-                            // ✅ Remove this block entirely from here
                         }
                     }
                 }
