@@ -39,7 +39,7 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
         void onDirectionClick(Store store);
     }
 
-    private final List<Store> stores;
+    private List<Store> stores;
     private final OnItemClickListener itemClickListener;
     private final OnDirectionClickListener directionClickListener;
 
@@ -59,6 +59,12 @@ public class StoreAdapter extends RecyclerView.Adapter<StoreAdapter.StoreViewHol
                 .inflate(R.layout.result_card_item, parent, false);
         return new StoreViewHolder(view);
     }
+
+    public void updateData(List<Store> newList) {
+        stores = newList;
+        notifyDataSetChanged();
+    }
+
 
     @Override
     public void onBindViewHolder(@NonNull StoreViewHolder holder, int position) {

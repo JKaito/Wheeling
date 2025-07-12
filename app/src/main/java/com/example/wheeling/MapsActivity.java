@@ -195,6 +195,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         cardIconMap.put(findViewById(R.id.card_walk), findViewById(R.id.icon_card_walk));
         cardIconMap.put(findViewById(R.id.card_home), findViewById(R.id.icon_home));
 
+
+        ImageButton homeButton = findViewById(R.id.icon_home);
+        homeButton.setOnClickListener(view -> showFavouriteBottomSheet());
+
+
         // 🔹 Handle selection logic
         for (CardView card : cardIconMap.keySet()) {
             card.setOnClickListener(view -> {
@@ -339,6 +344,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     new String[]{ Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
                     LOCATION_PERMISSION_REQUEST_CODE
             );
+        }
+    }
+
+    private void showFavouriteBottomSheet() {
+        View bottomSheet = findViewById(R.id.bottom_sheet);
+        BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+
+        int currentState = bottomSheetBehavior.getState();
+
+        if (currentState == BottomSheetBehavior.STATE_EXPANDED) {
+            // Sheet is open → collapse it
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        } else {
+            // Sheet is closed → filter and show favourites, then expand it
+            List<Store> favouriteStores = new ArrayList<>();
+            for (Store store : allStores) {
+                if (store.isFavourite()) {
+                    favouriteStores.add(store);
+                }
+            }
+
+            storeAdapter.updateData(favouriteStores);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         }
     }
 
