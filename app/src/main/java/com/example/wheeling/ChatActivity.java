@@ -1,9 +1,13 @@
 package com.example.wheeling;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.wheeling.R;
@@ -29,6 +33,27 @@ public class ChatActivity extends Activity {
         btnStairs.setOnClickListener(buttonClickListener);
         btnRoughRoad.setOnClickListener(buttonClickListener);
         btnUphill.setOnClickListener(buttonClickListener);
+    }
+
+    private void addChatMessage(String message, boolean alignRight) {
+        LinearLayout chatContainer = findViewById(R.id.chat_container);
+
+        TextView newMessage = new TextView(this);
+        newMessage.setText(message);
+        newMessage.setTextColor(Color.WHITE);
+        newMessage.setTextSize(14);
+        newMessage.setBackgroundColor(Color.parseColor("#379FFF"));
+        newMessage.setPadding(24, 16, 24, 16);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(16, 8, 16, 8);
+        params.gravity = alignRight ? Gravity.END : Gravity.START;
+        newMessage.setLayoutParams(params);
+
+        chatContainer.addView(newMessage);
     }
 
     private final View.OnClickListener buttonClickListener = new View.OnClickListener() {
@@ -65,6 +90,7 @@ public class ChatActivity extends Activity {
             button.setImageResource(R.drawable.ic_uphill_orange);
         }
     }
+
 
     // Reset image to default
     private void resetButtonImage(ImageButton button) {

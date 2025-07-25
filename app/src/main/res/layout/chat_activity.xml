@@ -57,7 +57,7 @@
             android:src="@drawable/ic_info" />
     </LinearLayout>
 
-    <!-- Center icon and message -->
+    <!-- Center target icon and message -->
     <LinearLayout
         android:id="@+id/layout_give_location"
         android:layout_width="match_parent"
@@ -87,7 +87,7 @@
             android:textSize="14sp"
             android:gravity="center" />
     </LinearLayout>
-
+    <!-- blue Dialogue problem selector -->
     <LinearLayout
         android:id="@+id/layout_reason_picker"
         android:layout_width="match_parent"
@@ -201,14 +201,62 @@
         </LinearLayout>
 
         <Button
+            android:id="@+id/btn_skip_reason"
             android:layout_height="40dp"
             android:layout_width="300dp"
-            android:id="@+id/btn_skip_reason"
             android:text="Skip"
             android:layout_marginTop="20dp"
             android:background="@drawable/rounded_button"
-            android:textColor="#FFFFFF" />
+            android:textColor="#FFFFFF"/>
     </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/chat_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="560dp"
+        android:layout_above="@+id/bottom_input_bar"
+        android:layout_marginBottom="0dp"
+        android:padding="8dp"
+        android:fillViewport="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/chat_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="bottom"
+            android:padding="12dp"
+            android:layout_gravity="bottom">
+
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:background="#FFA500"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_location_target" />
+
+                <TextView
+                    android:id="@+id/message_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Default text (debug)"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+
     <!-- Pin location instruction (optional floating hint) -->
     <LinearLayout
         android:layout_width="match_parent"

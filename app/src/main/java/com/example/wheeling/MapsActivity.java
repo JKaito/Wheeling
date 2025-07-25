@@ -15,10 +15,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -109,11 +111,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             } else {
                 chatOverlay.setVisibility(View.VISIBLE);
             }
-
-            Toast.makeText(this, "Clicked walk tab", Toast.LENGTH_SHORT).show();  // ✅ Debug helper
         });
 
-        // These are inside the chat_overlay, which is part of MapsActivity layout now
+        // These are inside the chat_overlay, which is part of MapsActivity layout
         layoutGiveLocation = findViewById(R.id.layout_give_location);
         layoutReasonPicker = findViewById(R.id.layout_reason_picker);
         locationIcon = findViewById(R.id.location_icon);
@@ -128,6 +128,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ImageButton btnUphill = findViewById(R.id.btn_uphill);
 
         final ImageButton[] selectedButton = {null};
+        LinearLayout reasonPicker = findViewById(R.id.layout_reason_picker);
+        LinearLayout shareLocationLayout = findViewById(R.id.chat_container);
+        TextView reasonText = findViewById(R.id.message_text);
+        Button skipButton = findViewById(R.id.btn_skip_reason);
+        ScrollView chatScroll = findViewById(R.id.chat_scroll);
+
+
+        skipButton.setOnClickListener(v -> {
+            // Hide the reason picker and location layout
+            reasonPicker.setVisibility(View.GONE);
+            layoutGiveLocation.setVisibility(View.GONE);
+
+            // Show ScrollView and message container
+            chatScroll.setVisibility(View.VISIBLE);
+            shareLocationLayout.setVisibility(View.VISIBLE);
+
+            // Add message to the TextView
+            String message;
+            if (selectedButton[0] == btnStairs) {
+                message = "In need of help with some stairs";
+            } else if (selectedButton[0] == btnRough) {
+                message = "In need of help with a rough road";
+            } else if (selectedButton[0] == btnUphill) {
+                message = "In need of help with an uphill";
+            } else {
+                message = "Trou’s location is here";
+            }
+            reasonText.setText(message);
+            // Scroll to bottom
+            chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
+        });
+
 
         Map<ImageButton, Integer> defaultIcons = new HashMap<>();
         Map<ImageButton, Integer> orangeIcons = new HashMap<>();
