@@ -221,8 +221,6 @@
         android:layout_gravity="top"
         android:visibility="gone"
         android:elevation="16dp">
-
-        <include layout="@layout/chat_activity" />
     </FrameLayout>
 
     <!-- Bottom Navigation Bar - fixed at bottom -->

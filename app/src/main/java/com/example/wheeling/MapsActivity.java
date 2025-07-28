@@ -101,9 +101,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // ↓ This is for the chat layout
-        CardView cardWalk = findViewById(R.id.card_walk);
+        // 1) Attach the fragment once, even if chatOverlay starts GONE
+        if (getSupportFragmentManager().findFragmentByTag("CHAT") == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.chat_overlay, new ChatFragment(), "CHAT")
+                    .commit();
+        }
+
+        // 2) Now grab your overlay and toggle it on button taps
         FrameLayout chatOverlay = findViewById(R.id.chat_overlay);
+        CardView cardWalk    = findViewById(R.id.card_walk);
 
         cardWalk.setOnClickListener(v -> {
             if (chatOverlay.getVisibility() == View.VISIBLE) {
@@ -113,87 +120,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        // These are inside the chat_overlay, which is part of MapsActivity layout
-        layoutGiveLocation = findViewById(R.id.layout_give_location);
-        layoutReasonPicker = findViewById(R.id.layout_reason_picker);
-        locationIcon = findViewById(R.id.location_icon);
-
-        // Add click listener to toggle visibility
-        locationIcon.setOnClickListener(v -> {
-            layoutGiveLocation.setVisibility(View.GONE);
-            layoutReasonPicker.setVisibility(View.VISIBLE);
-        });
-        ImageButton btnStairs = findViewById(R.id.btn_stairs);
-        ImageButton btnRough = findViewById(R.id.btn_roughroad);
-        ImageButton btnUphill = findViewById(R.id.btn_uphill);
-
-        final ImageButton[] selectedButton = {null};
-        LinearLayout reasonPicker = findViewById(R.id.layout_reason_picker);
-        LinearLayout shareLocationLayout = findViewById(R.id.chat_container);
-        TextView reasonText = findViewById(R.id.message_text);
-        Button skipButton = findViewById(R.id.btn_skip_reason);
-        ScrollView chatScroll = findViewById(R.id.chat_scroll);
-
-
-        skipButton.setOnClickListener(v -> {
-            // Hide the reason picker and location layout
-            reasonPicker.setVisibility(View.GONE);
-            layoutGiveLocation.setVisibility(View.GONE);
-
-            // Show ScrollView and message container
-            chatScroll.setVisibility(View.VISIBLE);
-            shareLocationLayout.setVisibility(View.VISIBLE);
-
-            // Add message to the TextView
-            String message;
-            if (selectedButton[0] == btnStairs) {
-                message = "In need of help with some stairs";
-            } else if (selectedButton[0] == btnRough) {
-                message = "In need of help with a rough road";
-            } else if (selectedButton[0] == btnUphill) {
-                message = "In need of help with an uphill";
-            } else {
-                message = "Trou’s location is here";
-            }
-            reasonText.setText(message);
-            // Scroll to bottom
-            chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
-        });
-
-
-        Map<ImageButton, Integer> defaultIcons = new HashMap<>();
-        Map<ImageButton, Integer> orangeIcons = new HashMap<>();
-
-        defaultIcons.put(btnStairs, R.drawable.ic_stairs);
-        orangeIcons.put(btnStairs, R.drawable.ic_stairs_orange);
-
-        defaultIcons.put(btnRough, R.drawable.ic_roughroad);
-        orangeIcons.put(btnRough, R.drawable.ic_roughroad_orange);
-
-        defaultIcons.put(btnUphill, R.drawable.ic_uphill);
-        orangeIcons.put(btnUphill, R.drawable.ic_uphill_orange);
-
-        View.OnClickListener reasonClickListener = v -> {
-            ImageButton clicked = (ImageButton) v;
-
-            if (selectedButton[0] == clicked) {
-                // Deselect if already selected
-                clicked.setImageResource(defaultIcons.get(clicked));
-                selectedButton[0] = null;
-            } else {
-                // Deselect previous
-                if (selectedButton[0] != null) {
-                    selectedButton[0].setImageResource(defaultIcons.get(selectedButton[0]));
-                }
-                // Select new
-                clicked.setImageResource(orangeIcons.get(clicked));
-                selectedButton[0] = clicked;
-            }
-        };
-
-        btnStairs.setOnClickListener(reasonClickListener);
-        btnRough.setOnClickListener(reasonClickListener);
-        btnUphill.setOnClickListener(reasonClickListener);
 
         // ↓ THIS must match the view with app:layout_behavior above
         LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);

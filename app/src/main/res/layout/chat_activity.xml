@@ -228,31 +228,6 @@
             android:gravity="bottom"
             android:padding="12dp"
             android:layout_gravity="bottom">
-
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:background="#FFA500"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_location_target" />
-
-                <TextView
-                    android:id="@+id/message_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="10dp"
-                    android:text="Default text (debug)"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
         </LinearLayout>
     </ScrollView>
 
