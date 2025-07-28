@@ -287,7 +287,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (lastDestination != null) {
                     drawGoogleRoute(lastDestination);
 
-                    if ("walking".equals(selectedTravelMode)) {
+                    if ("walking".equals(selectedTravelMode)|| "wheelchair".equals(selectedTravelMode)) {
                         if (hasLocationPermission()) {
                             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                 // TODO: Consider calling
