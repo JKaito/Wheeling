@@ -27,6 +27,8 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -104,22 +106,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 1) Attach the fragment once, even if chatOverlay starts GONE
         if (getSupportFragmentManager().findFragmentByTag("CHAT") == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.chat_overlay, new ChatFragment(), "CHAT")
+                    .add(R.id.chat_overlay,
+                            ChatFragment.newInstance(),   // ← use newInstance()
+                            "CHAT")
                     .commit();
         }
 
         // 2) Now grab your overlay and toggle it on button taps
         FrameLayout chatOverlay = findViewById(R.id.chat_overlay);
-        CardView cardWalk    = findViewById(R.id.card_walk);
+        CardView    cardWalk    = findViewById(R.id.card_walk);
 
         cardWalk.setOnClickListener(v -> {
             if (chatOverlay.getVisibility() == View.VISIBLE) {
+                // Just hide if it's already up
                 chatOverlay.setVisibility(View.GONE);
             } else {
+                // Show the overlay…
                 chatOverlay.setVisibility(View.VISIBLE);
+
+                // …and swap in a brand-new ChatFragment instance:
+                FragmentManager    fm = getSupportFragmentManager();
+                FragmentTransaction ft = fm.beginTransaction();
+                ft.replace(
+                        R.id.chat_overlay,            // the FrameLayout container in activity_maps.xml
+                        ChatFragment.newInstance(),   // fresh instance
+                        "CHAT"                        // you can use any tag you like
+                );
+                ft.commit();
             }
         });
-
 
         // ↓ THIS must match the view with app:layout_behavior above
         LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
@@ -133,73 +148,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         allStores = StoreList.getStores();  // Save original list
-        storeAdapter = new StoreAdapter(allStores,this::showStoreDetails,this::showStoreMarkerAndDirections);
+        storeAdapter = new StoreAdapter(allStores,
+                this::showStoreDetails,
+                this::showStoreMarkerAndDirections);
         SharedPreferences prefs = getSharedPreferences("favorites", MODE_PRIVATE);
         Set<String> favNames = prefs.getStringSet("favStores", new HashSet<>());
 
         for (Store s : allStores) {
             s.setFavourite(favNames.contains(s.getName()));
         }
-        storeAdapter = new StoreAdapter(allStores,this::showStoreDetails,this::showStoreMarkerAndDirections);
-
         recyclerView.setAdapter(storeAdapter);
 
-
         // 🔹 Find filter buttons by ID
-        MaterialButton foodButton = findViewById(R.id.food_button);
-        MaterialButton drinksButton = findViewById(R.id.drink_button);
-        MaterialButton coffeeButton = findViewById(R.id.coffee_button);
-        MaterialButton hotelsButton = findViewById(R.id.hotel_button);
-        MaterialButton museumButton = findViewById(R.id.museum_button);
-        MaterialButton publicButton = findViewById(R.id.public_button);
-        MaterialButton shopButton = findViewById(R.id.shop_button);
+        MaterialButton foodButton    = findViewById(R.id.food_button);
+        MaterialButton drinksButton  = findViewById(R.id.drink_button);
+        MaterialButton coffeeButton  = findViewById(R.id.coffee_button);
+        MaterialButton hotelsButton  = findViewById(R.id.hotel_button);
+        MaterialButton museumButton  = findViewById(R.id.museum_button);
+        MaterialButton publicButton  = findViewById(R.id.public_button);
+        MaterialButton shopButton    = findViewById(R.id.shop_button);
 
         // 🔹 Shared listener to open the bottom sheet
-        foodButton.setOnClickListener(view -> {
-            filterAndDisplayStores("Restaurant","Food");
-            bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        });
+        View.OnClickListener openSheetListener = view -> {
+            String tag = null;
+            int id = view.getId();
+            if      (id == R.id.food_button)   tag = "Food";
+            else if (id == R.id.drink_button)  tag = "Drinks";
+            else if (id == R.id.coffee_button) tag = "Cafe";
+            else if (id == R.id.hotel_button)  tag = "Hotel";
+            else if (id == R.id.museum_button) tag = "Museum";
+            else if (id == R.id.public_button) tag = "Public";
+            else if (id == R.id.shop_button)   tag = "Shop";
 
-        drinksButton.setOnClickListener(view -> {
-            filterAndDisplayStores("Drinks");
-            bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        });
+            if (tag != null) {
+                filterAndDisplayStores(tag);
+                bottomSheet.setVisibility(View.VISIBLE);
+                sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+        };
 
-        coffeeButton.setOnClickListener(view -> {
-            filterAndDisplayStores("Cafe");
-            bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        });
-
-        hotelsButton.setOnClickListener(view -> {
-            filterAndDisplayStores("Hotel");
-            bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        });
-
-        museumButton.setOnClickListener(view -> {
-            filterAndDisplayStores("Museum");
-            bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        });
-
-        publicButton.setOnClickListener(view -> {
-            filterAndDisplayStores("Public");
-            bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        });
-
-        shopButton.setOnClickListener(view -> {
-            filterAndDisplayStores("Shop");
-            bottomSheet.setVisibility(View.VISIBLE);
-            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        });
-
+        foodButton.setOnClickListener(openSheetListener);
+        drinksButton.setOnClickListener(openSheetListener);
+        coffeeButton.setOnClickListener(openSheetListener);
+        hotelsButton.setOnClickListener(openSheetListener);
+        museumButton.setOnClickListener(openSheetListener);
+        publicButton.setOnClickListener(openSheetListener);
+        shopButton.setOnClickListener(openSheetListener);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         binding.myLocation.setOnClickListener(v -> {
@@ -219,33 +217,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // 🔹 Map each card to its corresponding icon
         Map<CardView, ImageButton> cardIconMap = new HashMap<>();
-        cardIconMap.put(findViewById(R.id.card_wheelchair), findViewById(R.id.icon_wheelchair));
-        cardIconMap.put(findViewById(R.id.card_car), findViewById(R.id.icon_car));
-        cardIconMap.put(findViewById(R.id.card_walk), findViewById(R.id.icon_card_walk));
-        cardIconMap.put(findViewById(R.id.card_home), findViewById(R.id.icon_home));
-
+        cardIconMap.put(findViewById(R.id.card_wheelchair),
+                findViewById(R.id.icon_wheelchair));
+        cardIconMap.put(findViewById(R.id.card_car),
+                findViewById(R.id.icon_car));
+        cardIconMap.put(findViewById(R.id.card_walk),
+                findViewById(R.id.icon_card_walk));
+        cardIconMap.put(findViewById(R.id.card_home),
+                findViewById(R.id.icon_home));
 
         ImageButton homeButton = findViewById(R.id.icon_home);
         homeButton.setOnClickListener(view -> showFavouriteBottomSheet());
-
 
         // 🔹 Handle selection logic
         for (CardView card : cardIconMap.keySet()) {
             card.setOnClickListener(view -> {
                 int id = view.getId();
 
-                // Only highlight logic for home and walk
+                // Reset all cards
                 for (Map.Entry<CardView, ImageButton> entry : cardIconMap.entrySet()) {
-                    entry.getKey().setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
+                    entry.getKey().setCardBackgroundColor(
+                            ColorStateList.valueOf(Color.WHITE));
                     entry.getValue().setColorFilter(null);
                 }
 
-                 // Highlight the selected card
-                card.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#379FFF")));
+                // Highlight the selected card
+                card.setCardBackgroundColor(
+                        ColorStateList.valueOf(Color.parseColor("#379FFF")));
                 cardIconMap.get(card).setColorFilter(Color.WHITE);
 
-
-                // Handle travel mode logic
+                // 🔹 Set travel mode and color
                 if (id == R.id.card_car) {
                     selectedTravelMode = "driving";
                     routeColor = Color.parseColor("#485AFF");
@@ -257,27 +258,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     routeColor = Color.parseColor("#EA8C00");
                 }
 
-                // Show chat overlay only when walk is selected
-                chatOverlay.setVisibility(id == R.id.card_walk ? View.VISIBLE : View.GONE);
+                // Show/hide the chat overlay
+                boolean isWalk = (id == R.id.card_walk);
+                chatOverlay.setVisibility(isWalk ? View.VISIBLE : View.GONE);
 
-                // Reset all cards
-                for (Map.Entry<CardView, ImageButton> entry : cardIconMap.entrySet()) {
-                    entry.getKey().setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
-                    entry.getValue().setColorFilter(null);
-                }
-
-                // Highlight selected card
-                card.setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#379FFF")));
-                cardIconMap.get(card).setColorFilter(Color.WHITE);
-
-                // 🔹 Set travel mode and color
-                if (id == R.id.card_car) {
-                    selectedTravelMode = "driving";
-                    routeColor = Color.parseColor("#485AFF");
-                } else {
-                    selectedTravelMode = "walking";
-                    routeColor = Color.parseColor("#EA8C00");
-                }
+                // 🔹 Always swap in a brand‑new ChatFragment when Walk is selected
+                           if (isWalk) {
+                           getSupportFragmentManager().beginTransaction()
+                                       .replace(
+                                           R.id.chat_overlay,
+                                           ChatFragment.newInstance(),  // new instance, clears old messages
+                                           "CHAT"
+                                               )
+                                       .commit();
+                       }
 
                 // 🚨 Clear previous routes BEFORE drawing
                 if (googleRoutePolyline != null) {
@@ -296,8 +290,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if ("walking".equals(selectedTravelMode)) {
                         if (hasLocationPermission()) {
                             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                               return;
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+                                return;
                             }
+                            fusedLocationClient.getLastLocation()
+                                    .addOnSuccessListener(location -> {
+                                        if (location != null) {
+                                            LatLng origin = new LatLng(
+                                                    location.getLatitude(),
+                                                    location.getLongitude());
+                                            fetchAccessibleRoute(
+                                                    origin, lastDestination);
+                                        }
+                                    });
                         }
                     }
                 }
@@ -308,6 +319,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         CardView defaultSelectedCard = findViewById(R.id.card_wheelchair);
         defaultSelectedCard.performClick(); // This ensures it uses the same styling logic
     }
+
 
 
     private void showStoreDetails(Store store) {
@@ -418,7 +430,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             drawGoogleRoute(destination);
 
-            if (!"walking".equals(selectedTravelMode)) return;
+            if (!( "walking".equals(selectedTravelMode) || "wheelchair".equals(selectedTravelMode) )) return;
 
             if (!hasLocationPermission()) return;
 
@@ -522,7 +534,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
         String originParam = "origin=" + origin.latitude + "," + origin.longitude;
         String destParam = "destination=" + dest.latitude + "," + dest.longitude;
-        String modeParam = "mode=" + selectedTravelMode;
+        String modeParam = "mode=" + (selectedTravelMode.equals("wheelchair") ? "walking" : selectedTravelMode);
         String key = getString(R.string.google_maps_key);
 
         return "https://maps.googleapis.com/maps/api/directions/json?" +
@@ -570,6 +582,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     .addAll(path)
                                     .color(Color.parseColor("#EA8C00"))  // orange
                                     .width(14f)
+                                    .zIndex(10f)
                                     .pattern(Arrays.asList(
                                             new Dash(30f),
                                             new Gap(20f)
@@ -669,9 +682,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     drawGoogleRoute(storeLatLng);
 
-                    if ("walking".equals(selectedTravelMode)) {
+                    if ("walking".equals(selectedTravelMode)|| "wheelchair".equals(selectedTravelMode)) {
                         fetchAccessibleRoute(origin, storeLatLng);
                     }
+
 
                     // 🔍 Fit route in view
                     LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
