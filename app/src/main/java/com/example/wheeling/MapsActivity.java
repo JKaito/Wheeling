@@ -45,6 +45,7 @@ import com.google.android.gms.maps.model.Dash;
 import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
@@ -96,6 +97,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean isChatOverlayVisible = false;
     private LinearLayout layoutGiveLocation, layoutReasonPicker;
     private ImageView locationIcon;
+    private Marker currentLocationMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -483,9 +485,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void drawGoogleRoute(LatLng destination) {
         if (!hasLocationPermission()) return;
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
             if (location != null) {
                 LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
@@ -508,17 +512,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 JSONObject jsonObject = new JSONObject(json);
                                 JSONArray routes = jsonObject.getJSONArray("routes");
                                 if (routes.length() > 0) {
+                                    // Decode the polyline into LatLng points
                                     String polyline = routes.getJSONObject(0)
                                             .getJSONObject("overview_polyline")
                                             .getString("points");
                                     List<LatLng> points = PolyUtil.decode(polyline);
 
+                                    // ── Parse ETA from the first leg ──
+                                    JSONObject leg = routes.getJSONObject(0)
+                                            .getJSONArray("legs")
+                                            .getJSONObject(0);
+                                    String durationText = leg
+                                            .getJSONObject("duration")
+                                            .getString("text");
+
                                     runOnUiThread(() -> {
-                                        if (googleRoutePolyline != null) googleRoutePolyline.remove();
+                                        // 1) Remove old Google polyline, then draw a fresh one at zIndex 0
+                                        if (googleRoutePolyline != null) {
+                                            googleRoutePolyline.remove();
+                                        }
                                         googleRoutePolyline = mMap.addPolyline(new PolylineOptions()
                                                 .addAll(points)
-                                                .color(Color.parseColor("#485AFF")) // ← REMOVE this hardcoded color
-                                                .width(14));
+                                                .color(Color.parseColor("#485AFF"))
+                                                .width(14)
+                                                .zIndex(0f));
+
+                                        // 2) Remove or update the ETA marker at the user's location
+                                        if (currentLocationMarker != null) {
+                                            currentLocationMarker.remove();
+                                        }
+                                        currentLocationMarker = mMap.addMarker(new MarkerOptions()
+                                                .position(origin)
+                                                .title("ETA: " + durationText)
+                                                .alpha(0f)
+                                                .icon(BitmapDescriptorFactory.defaultMarker(
+                                                        BitmapDescriptorFactory.HUE_AZURE)));
+                                        currentLocationMarker.showInfoWindow();
                                     });
                                 }
                             } catch (JSONException e) {
