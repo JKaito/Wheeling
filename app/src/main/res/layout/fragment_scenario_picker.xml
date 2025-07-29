@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_scenario_picker"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="?android:attr/windowBackground">
+
+    <Button
+        android:id="@+id/btn_scenario_chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Go to Chat"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="16dp" />
+
+    <Button
+        android:id="@+id/btn_scenario_assistant"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Go to Assistant"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp" />
+
+</LinearLayout>

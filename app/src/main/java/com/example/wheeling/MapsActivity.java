@@ -1,6 +1,8 @@
 package com.example.wheeling;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -9,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -74,6 +77,7 @@ import okhttp3.Response;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import android.widget.TextView;
+import com.example.wheeling.ScenarioPicker;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -99,6 +103,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ImageView locationIcon;
     private Marker currentLocationMarker;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,11 +111,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(binding.getRoot());
 
         // 1) Attach the fragment once, even if chatOverlay starts GONE
-        if (getSupportFragmentManager().findFragmentByTag("CHAT") == null) {
+        if (getSupportFragmentManager().findFragmentByTag("SCENARIO") == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.chat_overlay,
-                            ChatFragment.newInstance(),   // ← use newInstance()
-                            "CHAT")
+                    .add(R.id.chat_overlay, ScenarioPicker.newInstance(), "SCENARIO")
                     .commit();
         }
 
@@ -127,16 +130,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 chatOverlay.setVisibility(View.VISIBLE);
 
                 // …and swap in a brand-new ChatFragment instance:
-                FragmentManager    fm = getSupportFragmentManager();
+                FragmentManager fm = getSupportFragmentManager();
                 FragmentTransaction ft = fm.beginTransaction();
-                ft.replace(
-                        R.id.chat_overlay,            // the FrameLayout container in activity_maps.xml
-                        ChatFragment.newInstance(),   // fresh instance
-                        "CHAT"                        // you can use any tag you like
-                );
+                ft.replace(R.id.chat_overlay, ScenarioPicker.newInstance(), "SCENARIO");
                 ft.commit();
             }
         });
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            NotificationChannel channel = new NotificationChannel(
+                    "A2_CHANNEL",                      // must match the ID you use when building
+                    "Assistant Notifications",         // user-visible name
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications for Scenario Assistant");
+            nm.createNotificationChannel(channel);
+        }
 
         // ↓ THIS must match the view with app:layout_behavior above
         LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
@@ -196,6 +206,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         museumButton.setOnClickListener(openSheetListener);
         publicButton.setOnClickListener(openSheetListener);
         shopButton.setOnClickListener(openSheetListener);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    "SCENARIO_ASSISTANT_CHANNEL",    // unique ID
+                    "Assistant Notifications",       // user‐visible name
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications to launch the Scenario Assistant");
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            nm.createNotificationChannel(channel);
+        }
+
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment)
@@ -267,11 +289,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // 🔹 Always swap in a brand‑new ChatFragment when Walk is selected
                            if (isWalk) {
                            getSupportFragmentManager().beginTransaction()
-                                       .replace(
-                                           R.id.chat_overlay,
-                                           ChatFragment.newInstance(),  // new instance, clears old messages
-                                           "CHAT"
-                                               )
+                                   .replace(R.id.chat_overlay, ScenarioPicker.newInstance(), "SCENARIO")
                                        .commit();
                        }
 
@@ -320,9 +338,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // ✅ Trigger initial selection of wheelchair card through shared logic
         CardView defaultSelectedCard = findViewById(R.id.card_wheelchair);
         defaultSelectedCard.performClick(); // This ensures it uses the same styling logic
+        handleIncomingIntent(getIntent());
     }
 
-
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);            // update the stored intent
+        handleIncomingIntent(intent);
+    }
 
     private void showStoreDetails(Store store) {
         // 1) grab the two half-sheets
@@ -671,6 +695,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         recyclerView.setAdapter(storeAdapter);
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
     }
+
+    private void handleIncomingIntent(Intent intent) {
+        if ("OPEN_ASSISTANT".equals(intent.getAction())
+                && "ASSISTANT".equals(intent.getStringExtra("openFragment"))) {
+
+            // Make sure the overlay container is visible
+            FrameLayout chatOverlay = findViewById(R.id.chat_overlay);
+            chatOverlay.setVisibility(View.VISIBLE);
+
+            // Swap in the ScenarioAssistant fragment
+            getSupportFragmentManager().beginTransaction()
+                    .replace(
+                            R.id.chat_overlay,
+                            ScenarioAssistant.newInstance(),
+                            "ASSISTANT"
+                    )
+                    .commit();
+        }
+    }
+
 
     private void showStoreMarkerAndDirections(Store store) {
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
