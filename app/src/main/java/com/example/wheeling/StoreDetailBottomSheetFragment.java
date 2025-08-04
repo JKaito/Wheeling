@@ -54,40 +54,43 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
         MaterialButton facilityBtn = view.findViewById(R.id.tv_accessible_facility);
         MaterialButton pathBtn = view.findViewById(R.id.btn_path);
 
-        // 2. Default text color white for both buttons (background tint will be set dynamically below)
+        // 2. Default text color white for both buttons (background tint set dynamically below)
         facilityBtn.setTextColor(Color.WHITE);
-        pathBtn.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.black));
         pathBtn.setTextColor(Color.WHITE);
 
         // 3. Get parent LinearLayout (should be the direct parent of both buttons)
         LinearLayout parentLayout = (LinearLayout) facilityBtn.getParent();
 
-        // 4. Create the extra info TextView for "Accessible Facility" (hidden by default)
+        // 4. Create expandable info TextView for Accessible Facility
         TextView facilityInfo = new TextView(requireContext());
-
-        // Set padding with zero top padding to remove gap
         facilityInfo.setPadding(32, 24, 32, 24);
-
-        // Ensure no margins
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, 0, 0, 0);
         facilityInfo.setLayoutParams(params);
-
         facilityInfo.setVisibility(View.GONE);
         parentLayout.addView(facilityInfo, parentLayout.indexOfChild(facilityBtn) + 1);
+
+        // 5. Create expandable info TextView for Accessible Path
+        TextView pathInfo = new TextView(requireContext());
+        pathInfo.setPadding(32, 24, 32, 24);
+        LinearLayout.LayoutParams pathParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        pathParams.setMargins(0, 0, 0, 0);
+        pathInfo.setLayoutParams(pathParams);
+        pathInfo.setVisibility(View.GONE);
+        parentLayout.addView(pathInfo, parentLayout.indexOfChild(pathBtn) + 1);
 
         // --- Accessibility bar logic start ---
 
         TextView accessibilityBar = view.findViewById(R.id.accessibility_bar);
 
-        // Assume these booleans come from the Store data, will set below
         boolean proximityAccessible = false;
         boolean entranceAccessible = false;
         boolean hasAccessibleRestroom = false;
 
-        // 1) Look up the Store by name
         String storeName = requireArguments().getString(ARG_STORE_NAME);
         Store found = null;
         for (Store s : StoreList.getStores()) {
@@ -98,27 +101,23 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
         }
         if (found == null) return;
 
-        // Set booleans based on the found store
         proximityAccessible = found.isProximityAccessible();
         entranceAccessible = found.isEntranceAccessible();
         hasAccessibleRestroom = found.isHasAccessibleRestroom();
 
-        // Count how many accessibility features are available
         int accessibleCount = 0;
         if (proximityAccessible) accessibleCount++;
         if (entranceAccessible) accessibleCount++;
         if (hasAccessibleRestroom) accessibleCount++;
 
-        // Number of inaccessible features
         int inaccessibleCount = 3 - accessibleCount;
 
-        // Set color and text of accessibility_bar accordingly, based on accessibleCount
         int colorResId;
         if (inaccessibleCount >= 3) {
             accessibilityBar.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.red_700));
             accessibilityBar.setText("INACCESSIBLE");
             colorResId = R.color.red_700;
-        } else if (inaccessibleCount == 2) {
+        } else if (inaccessibleCount == 1 || inaccessibleCount == 2) {
             accessibilityBar.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.orange_700));
             accessibilityBar.setText("PARTIALLY ACCESSIBLE");
             colorResId = R.color.orange_700;
@@ -132,7 +131,7 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
 
         // --- Accessibility bar logic end ---
 
-        // Bullets list
+        // Facility bullets
         String[] facilityBullets = new String[]{
                 "Inaccessible Building (Stairs).",
                 "Inaccessible outerspace (Stairs).",
@@ -140,59 +139,93 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
                 "No elevator for the second floor."
         };
 
-        // Determine bullet count based on inaccessibleCount/color (reversed)
-        int bulletCount;
-        if (inaccessibleCount >= 3) {
-            // red: show 3 or 4 bullets randomly (more problems)
-            bulletCount = 3 + (new Random().nextBoolean() ? 1 : 0);
-        } else if (inaccessibleCount == 2) {
-            // orange: 2 bullets
-            bulletCount = 2;
-        } else {
-            // green: 1 bullet
-            bulletCount = 1;
+        // Path bullets
+        String[] pathBullets = new String[]{
+                "Stairs",
+                "Rough road",
+                "Uphill"
+        };
+
+        Random random = new Random();
+
+        // Determine bullet count based on accessibility color:
+        int facilityBulletCount;
+        int pathBulletCount;
+
+        if (colorResId == R.color.green_700) {
+            facilityBulletCount = 0;
+            pathBulletCount = 0;
+        } else if (colorResId == R.color.orange_700) {
+            // 1 or 2 bullets randomly
+            facilityBulletCount = 1 + random.nextInt(2); // 1 or 2
+            pathBulletCount = 1 + random.nextInt(2);
+        } else { // red
+            // 3 or 4 bullets for facility (max 4)
+            facilityBulletCount = 3 + random.nextInt(2); // 3 or 4
+            pathBulletCount = 3; // max 3 for path bullets
         }
 
-        // Pick random unique bullets
-        List<String> bulletList = new ArrayList<>(Arrays.asList(facilityBullets));
-        Collections.shuffle(bulletList);
-        List<String> selectedBullets = bulletList.subList(0, bulletCount);
+        // Build facility bullet text
+        StringBuilder facilityBulletTextBuilder = new StringBuilder();
+        if (facilityBulletCount > 0) {
+            List<String> facilityList = new ArrayList<>(Arrays.asList(facilityBullets));
+            Collections.shuffle(facilityList);
+            List<String> selectedFacilityBullets = facilityList.subList(0, Math.min(facilityBulletCount, facilityList.size()));
 
-        // Build bullet text string
-        StringBuilder bulletTextBuilder = new StringBuilder();
-        for (String bullet : selectedBullets) {
-            bulletTextBuilder.append("• ").append(bullet).append("\n");
+            for (String bullet : selectedFacilityBullets) {
+                facilityBulletTextBuilder.append("• ").append(bullet).append("\n");
+            }
         }
-        String bulletText = bulletTextBuilder.toString().trim();
+        String facilityBulletText = facilityBulletTextBuilder.toString().trim();
 
-        // Apply colors and text to facilityBtn and expandable bullet info
-        facilityBtn.setBackgroundTintList(ColorStateList.valueOf(color));
-        GradientDrawable bgDrawable = new GradientDrawable();
-        bgDrawable.setColor(color);
+        // Build path bullet text
+        StringBuilder pathBulletTextBuilder = new StringBuilder();
+        if (pathBulletCount > 0) {
+            List<String> pathList = new ArrayList<>(Arrays.asList(pathBullets));
+            Collections.shuffle(pathList);
+            List<String> selectedPathBullets = pathList.subList(0, Math.min(pathBulletCount, pathList.size()));
+
+            for (String bullet : selectedPathBullets) {
+                pathBulletTextBuilder.append("• ").append(bullet).append("\n");
+            }
+        }
+        String pathBulletText = pathBulletTextBuilder.toString().trim();
+
+        // Setup facility info background drawable with rounded corners
+        GradientDrawable facilityBg = new GradientDrawable();
+        facilityBg.setColor(color);
         float radiusInDp = 8f;
         float radiusInPx = radiusInDp * getResources().getDisplayMetrics().density;
-        bgDrawable.setCornerRadius(radiusInPx);
-        facilityInfo.setBackground(bgDrawable);        facilityInfo.setTextColor(Color.WHITE);
-        facilityInfo.setText(bulletText);
+        facilityBg.setCornerRadius(radiusInPx);
 
-        // 5. Create the extra info TextView for "Accessible Path to the Facility" (hidden by default)
-        TextView pathInfo = new TextView(requireContext());
-        pathInfo.setText("Example additional info for accessible path here."); // Update as needed
+        // Setup path info background drawable with rounded corners
+        GradientDrawable pathBg = new GradientDrawable();
+        pathBg.setColor(color);
+        pathBg.setCornerRadius(radiusInPx);
+
+        // Apply colors and text to facilityBtn and facilityInfo
+        facilityBtn.setBackgroundTintList(ColorStateList.valueOf(color));
+        facilityInfo.setBackground(facilityBg);
+        facilityInfo.setTextColor(Color.WHITE);
+        if (facilityBulletCount == 0) {
+            facilityInfo.setVisibility(View.GONE);
+        } else {
+            facilityInfo.setText(facilityBulletText);
+            facilityInfo.setVisibility(View.GONE); // start hidden
+        }
+
+        // Apply colors and text to pathBtn and pathInfo
+        pathBtn.setBackgroundTintList(ColorStateList.valueOf(color));
+        pathInfo.setBackground(pathBg);
         pathInfo.setTextColor(Color.WHITE);
-        pathInfo.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.black));
-        pathInfo.setPadding(32, 24, 32, 24);
-        pathInfo.setVisibility(View.GONE);
-        parentLayout.addView(pathInfo, parentLayout.indexOfChild(pathBtn) + 1);
+        if (pathBulletCount == 0) {
+            pathInfo.setVisibility(View.GONE);
+        } else {
+            pathInfo.setText(pathBulletText);
+            pathInfo.setVisibility(View.GONE); // start hidden
+        }
 
-
-
-
-
-
-
-
-
-        // 6. Toggle info visibility on button click
+        // Toggle info visibility on button clicks
         facilityBtn.setOnClickListener(v -> {
             facilityInfo.setVisibility(facilityInfo.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
         });
@@ -200,10 +233,9 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
             pathInfo.setVisibility(pathInfo.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
         });
 
-        // 2) Create a final local so it can be captured by lambdas
+        // Bind other views and populate as before...
         final Store store = found;
 
-        // 3) Bind views
         TextView nameView = view.findViewById(R.id.place_name);
         TextView statusView = view.findViewById(R.id.place_status);
         TextView addressView = view.findViewById(R.id.place_address);
@@ -215,13 +247,11 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
         ImageView mainImageView = view.findViewById(R.id.main_image);
         LinearLayout thumbRow = view.findViewById(R.id.image_row);
 
-        // 4) Populate fields
         nameView.setText(store.getName());
         statusView.setText(store.isProximityAccessible() ? "Accessible" : "Not Accessible");
         addressView.setText(store.getAddress());
         websiteView.setText(store.getWebsite());
 
-        // 5) Load images
         List<String> urls = store.getImageUrls();
         if (!urls.isEmpty()) {
             Glide.with(this).load(urls.get(0)).into(mainImageView);
@@ -237,7 +267,6 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
             }
         }
 
-        // 6) Wire Directions → MapsActivity (now-public) helper
         btnDirections.setOnClickListener(v -> {
             if (requireActivity() instanceof MapsActivity) {
                 ((MapsActivity) requireActivity()).showStoreMarkerAndDirections(store);
@@ -245,7 +274,6 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
             dismiss();
         });
 
-        // 7) Wire Call → dialer
         btnCall.setOnClickListener(v -> {
             Intent dial = new Intent(
                     Intent.ACTION_DIAL,
@@ -255,6 +283,6 @@ public class StoreDetailBottomSheetFragment extends BottomSheetDialogFragment {
             dismiss();
         });
 
-        // 8) Assistant button remains as before…
+        // Assistant button remains as before…
     }
 }
