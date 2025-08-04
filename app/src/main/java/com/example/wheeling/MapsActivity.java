@@ -34,6 +34,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.example.wheeling.StoreDetailBottomSheetFragment;
 
 import com.bumptech.glide.Glide;
 import com.example.wheeling.databinding.ActivityMapsBinding;
@@ -184,8 +186,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         View.OnClickListener openSheetListener = view -> {
             String tag = null;
             int id = view.getId();
-            if      (id == R.id.food_button)   tag = "Food";
-            else if (id == R.id.drink_button)  tag = "Drinks";
+            if      (id == R.id.food_button) {
+                filterAndDisplayStores("Food");
+                filterAndDisplayStores("Restaurant");
+                bottomSheet.setVisibility(View.VISIBLE);
+                sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                return; // skip the below code
+            }
+            // no drinks to display
+            else if (id == R.id.drink_button)  tag = "Cafe";
             else if (id == R.id.coffee_button) tag = "Cafe";
             else if (id == R.id.hotel_button)  tag = "Hotel";
             else if (id == R.id.museum_button) tag = "Museum";
@@ -310,13 +319,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if ("walking".equals(selectedTravelMode)|| "wheelchair".equals(selectedTravelMode)) {
                         if (hasLocationPermission()) {
                             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                // TODO: Consider calling
-                                //    ActivityCompat#requestPermissions
-                                // here to request the missing permissions, and then overriding
-                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                //                                          int[] grantResults)
-                                // to handle the case where the user grants the permission. See the documentation
-                                // for ActivityCompat#requestPermissions for more details.
+
                                 return;
                             }
                             fusedLocationClient.getLastLocation()
@@ -349,53 +352,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void showStoreDetails(Store store) {
-        // 1) grab the two half-sheets
-        RecyclerView results     = findViewById(R.id.result_recycler);
-        View         detailCard  = findViewById(R.id.detail_container);  // ← use the include’s ID!
+        // 1) collapse the existing sheet
+        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-        // 2) swap them
-        results.setVisibility(View.GONE);
-        detailCard.setVisibility(View.VISIBLE);
-
-        // 3) pull out all of your sub-views (same IDs as in detail_card_item.xml)
-        TextView    nameView       = detailCard.findViewById(R.id.place_name);
-        TextView    statusView     = detailCard.findViewById(R.id.place_status);
-        MaterialButton btnDirections = detailCard.findViewById(R.id.btn_directions);
-        MaterialButton btnAssistant  = detailCard.findViewById(R.id.btn_assistant);
-        ImageButton bookmarkView   = detailCard.findViewById(R.id.bookmark_icon);
-        ImageView   mainImageView  = detailCard.findViewById(R.id.main_image);
-        LinearLayout thumbRow      = detailCard.findViewById(R.id.image_row);
-        TextView    addressView    = detailCard.findViewById(R.id.place_address);
-        TextView    websiteView    = detailCard.findViewById(R.id.place_website);
-        MaterialButton btnPath       = detailCard.findViewById(R.id.btn_path);
-
-        // 4) populate with your Store model
-        nameView.setText(store.getName());
-        addressView.setText(store.getAddress());
-        websiteView.setText(store.getWebsite());
-
-        // 5) wire the buttons
-        btnPath      .setEnabled(store.isProximityAccessible());
-
-        // 6) load your images (using Glide)
-        List<String> urls = store.getImageUrls();
-        if (!urls.isEmpty()) {
-            Glide.with(this).load(urls.get(0)).into(mainImageView);
-            thumbRow.removeAllViews();
-            for (String u : urls) {
-                ImageView iv = new ImageView(this);
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(200, 200);
-                lp.setMargins(8, 0, 8, 0);
-                iv.setLayoutParams(lp);
-                iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                Glide.with(this).load(u).into(iv);
-                thumbRow.addView(iv);
-            }
-        }
-
-        // 7) finally expand the sheet
-        BottomSheetBehavior.from(findViewById(R.id.bottom_sheet))
-                .setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+        // 2) launch the modal bottom sheet with the store’s name
+        StoreDetailBottomSheetFragment
+                .newInstance(store.getName())
+                .show(getSupportFragmentManager(), "STORE_DETAIL");
     }
 
     @Override
@@ -716,7 +679,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    private void showStoreMarkerAndDirections(Store store) {
+    public void showStoreMarkerAndDirections(Store store) {
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
         LatLng storeLatLng = new LatLng(store.getLatitude(), store.getLongitude());

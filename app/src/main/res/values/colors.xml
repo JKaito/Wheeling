@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="green_700">#388E3C</color>       <!-- A typical Material green 700 -->
+    <color name="orange_700">#F57C00</color>      <!-- A typical Material orange 700 -->
+    <color name="red_700">#D32F2F</color>         <!-- A typical Material red 700 -->
+
 </resources>
