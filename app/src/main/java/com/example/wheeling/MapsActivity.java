@@ -13,12 +13,15 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -67,9 +70,11 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -176,6 +181,64 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             s.setFavourite(favNames.contains(s.getName()));
         }
         recyclerView.setAdapter(storeAdapter);
+
+
+
+
+
+        // 6) SUGGESTIONS list (name‐only) under the search bar
+        RecyclerView suggestionRecycler = findViewById(R.id.search_results);
+        suggestionRecycler.setLayoutManager(new LinearLayoutManager(this));
+        SuggestionAdapter suggestionAdapter = new SuggestionAdapter(name -> {
+            // hide suggestions & show on map when tapped
+            suggestionRecycler.setVisibility(View.GONE);
+            for (Store s : allStores) {
+                if (s.getName().equals(name)) {
+                    showStoreMarkerAndDirections(s);
+                    break;
+                }
+            }
+        });
+        suggestionRecycler.setAdapter(suggestionAdapter);
+        suggestionRecycler.setVisibility(View.GONE);
+
+        // 7) Hook up the EditText to filter
+        EditText searchInput = findViewById(R.id.search_input);
+        searchInput.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void afterTextChanged(Editable e) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int st, int b, int c) {
+                String q = s.toString().trim().toLowerCase(Locale.ROOT);
+                if (q.isEmpty()) {
+                    suggestionRecycler.setVisibility(View.GONE);
+                    suggestionAdapter.updateData(Collections.emptyList());
+                } else {
+                    List<String> names = new ArrayList<>();
+                    for (Store store : allStores) {
+                        if (store.getName().toLowerCase(Locale.ROOT).contains(q)) {
+                            names.add(store.getName());
+                        }
+                    }
+                    if (names.isEmpty()) {
+                        suggestionRecycler.setVisibility(View.GONE);
+                    } else {
+                        suggestionRecycler.setVisibility(View.VISIBLE);
+                        suggestionRecycler.bringToFront();
+                    }
+                    suggestionAdapter.updateData(names);
+                }
+            }
+        });
+
+
+
+
+
+
+
+
 
         // 🔹 Find filter buttons by ID
         MaterialButton foodButton    = findViewById(R.id.food_button);
@@ -685,6 +748,53 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         RecyclerView recyclerView = findViewById(R.id.result_recycler);
         recyclerView.setAdapter(storeAdapter);
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+        // 5) SUGGESTIONS list (name‐only)
+        RecyclerView suggestionRecycler = findViewById(R.id.search_results);
+        suggestionRecycler.setLayoutManager(new LinearLayoutManager(this));
+        SuggestionAdapter suggestionAdapter = new SuggestionAdapter(name -> {
+            // when tapped: hide suggestions & show on map
+            suggestionRecycler.setVisibility(View.GONE);
+            for (Store s : allStores) {
+                if (s.getName().equals(name)) {
+                    showStoreMarkerAndDirections(s);
+                    break;
+                }
+            }
+        });
+        suggestionRecycler.setAdapter(suggestionAdapter);
+        suggestionRecycler.setVisibility(View.GONE);
+
+        // 6) Hook up search_input to filter
+        EditText searchInput = findViewById(R.id.search_input);
+        searchInput.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void afterTextChanged(Editable e) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int st, int b, int c) {
+                String q = s.toString().trim().toLowerCase(Locale.ROOT);
+                if (q.isEmpty()) {
+                    suggestionRecycler.setVisibility(View.GONE);
+                    // optional: restore full bottom‐sheet list
+                    storeAdapter.updateData(allStores);
+                } else {
+                    List<String> names = new ArrayList<>();
+                    for (Store store : allStores) {
+                        if (store.getName().toLowerCase(Locale.ROOT).contains(q)) {
+                            names.add(store.getName());
+                        }
+                    }
+                    if (names.isEmpty()) {
+                        suggestionRecycler.setVisibility(View.GONE);
+                    } else {
+                        suggestionRecycler.setVisibility(View.VISIBLE);
+                    }
+                    suggestionAdapter.updateData(names);
+                }
+            }
+        });
+
     }
 
     private void handleIncomingIntent(Intent intent) {
