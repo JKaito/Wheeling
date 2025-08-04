@@ -34,6 +34,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.example.wheeling.StoreDetailBottomSheetFragment;
 
@@ -70,6 +72,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -104,7 +107,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LinearLayout layoutGiveLocation, layoutReasonPicker;
     private ImageView locationIcon;
     private Marker currentLocationMarker;
-
+    private static final LatLng FIXED_STOP = new LatLng(40.652491, 22.952756);
+    private List<Polyline> currentPolylines = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -471,80 +475,104 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void drawGoogleRoute(LatLng destination) {
         if (!hasLocationPermission()) return;
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-            if (location != null) {
-                LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
+            if (location == null) return;
+            LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
+
+            // ── CLEAR out any old route lines ─────────────────────────────
+            runOnUiThread(() -> {
+                for (Polyline pl : currentPolylines) {
+                    pl.remove();
+                }
+                currentPolylines.clear();
+            });
+
+            OkHttpClient client = new OkHttpClient();
+
+            if ("driving".equals(selectedTravelMode)) {
+                // ── LEG 1: origin → FIXED_STOP (blue) ─────────────────────────
+                String url1 = getDirectionsUrl(origin, FIXED_STOP);
+                client.newCall(new Request.Builder().url(url1).build())
+                        .enqueue(new DirectionsCallback(polyPoints -> {
+                            runOnUiThread(() -> {
+                                Polyline p = mMap.addPolyline(new PolylineOptions()
+                                        .addAll(polyPoints)
+                                        .width(15)
+                                        .color(routeColor)  // your existing blue
+                                );
+                                currentPolylines.add(p);
+                            });
+                        }));
+
+                // ── LEG 2: FIXED_STOP → destination (green) ────────────────────
+                String url2 = getDirectionsUrl(FIXED_STOP, destination);
+                client.newCall(new Request.Builder().url(url2).build())
+                        .enqueue(new DirectionsCallback(polyPoints -> {
+                            runOnUiThread(() -> {
+                                Polyline p = mMap.addPolyline(new PolylineOptions()
+                                        .addAll(polyPoints)
+                                        .width(15)
+                                        .color(Color.GREEN)
+                                );
+                                currentPolylines.add(p);
+                            });
+                        }));
+
+            } else {
+                // ── WALKING / WHEELCHAIR: single-leg, forced blue for wheelchair ──
+                int color = "wheelchair".equals(selectedTravelMode) ? Color.BLUE : routeColor;
                 String url = getDirectionsUrl(origin, destination);
-
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder().url(url).build();
-
-                client.newCall(request).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    @Override
-                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                        if (response.isSuccessful() && response.body() != null) {
-                            try {
-                                String json = response.body().string();
-                                JSONObject jsonObject = new JSONObject(json);
-                                JSONArray routes = jsonObject.getJSONArray("routes");
-                                if (routes.length() > 0) {
-                                    // Decode the polyline into LatLng points
-                                    String polyline = routes.getJSONObject(0)
-                                            .getJSONObject("overview_polyline")
-                                            .getString("points");
-                                    List<LatLng> points = PolyUtil.decode(polyline);
-
-                                    // ── Parse ETA from the first leg ──
-                                    JSONObject leg = routes.getJSONObject(0)
-                                            .getJSONArray("legs")
-                                            .getJSONObject(0);
-                                    String durationText = leg
-                                            .getJSONObject("duration")
-                                            .getString("text");
-
-                                    runOnUiThread(() -> {
-                                        // 1) Remove old Google polyline, then draw a fresh one at zIndex 0
-                                        if (googleRoutePolyline != null) {
-                                            googleRoutePolyline.remove();
-                                        }
-                                        googleRoutePolyline = mMap.addPolyline(new PolylineOptions()
-                                                .addAll(points)
-                                                .color(Color.parseColor("#485AFF"))
-                                                .width(14)
-                                                .zIndex(0f));
-
-                                        // 2) Remove or update the ETA marker at the user's location
-                                        if (currentLocationMarker != null) {
-                                            currentLocationMarker.remove();
-                                        }
-                                        currentLocationMarker = mMap.addMarker(new MarkerOptions()
-                                                .position(origin)
-                                                .title("ETA: " + durationText)
-                                                .alpha(0f)
-                                                .icon(BitmapDescriptorFactory.defaultMarker(
-                                                        BitmapDescriptorFactory.HUE_AZURE)));
-                                        currentLocationMarker.showInfoWindow();
-                                    });
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
+                client.newCall(new Request.Builder().url(url).build())
+                        .enqueue(new DirectionsCallback(polyPoints -> {
+                            runOnUiThread(() -> {
+                                Polyline p = mMap.addPolyline(new PolylineOptions()
+                                        .addAll(polyPoints)
+                                        .width(15)
+                                        .color(color)
+                                );
+                                currentPolylines.add(p);
+                                // …any other marker/camera logic you had…
+                            });
+                        }));
             }
         });
+    }
+
+    // 3) Add this helper class inside your activity, just below drawGoogleRoute:
+    private class DirectionsCallback implements Callback {
+        private final Consumer<List<LatLng>> onSuccess;
+
+        DirectionsCallback(Consumer<List<LatLng>> onSuccess) {
+            this.onSuccess = onSuccess;
+        }
+
+        @Override
+        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            // you can log or show an error here
+        }
+
+        @Override
+        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            if (!response.isSuccessful() || response.body() == null) return;
+            try {
+                JSONObject json = new JSONObject(response.body().string());
+                JSONArray routes = json.getJSONArray("routes");
+                if (routes.length() > 0) {
+                    String poly = routes.getJSONObject(0)
+                            .getJSONObject("overview_polyline")
+                            .getString("points");
+                    List<LatLng> pts = PolyUtil.decode(poly);
+                    onSuccess.accept(pts);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
