@@ -225,35 +225,31 @@ public class ChatFragment extends Fragment {
      *               false if a bot bubble (left/grey)
      */
     private void addMessageToChat(String text, boolean isUser) {
-        // Inflate into the container
-        LayoutInflater.from(getContext())
-                .inflate(R.layout.chat_message, chatContainer, true);
+        // 1) Choose the layout resource
+        int layoutRes = isUser
+                ? R.layout.chat_message        // your orange bubble, avatar on right
+                : R.layout.chat_message_user;  // your grey bubble, avatar on left
 
-        // Get the newly added bubble view
+        // 2) Inflate it into the container
+        LayoutInflater.from(getContext())
+                .inflate(layoutRes, chatContainer, true);
+
+        // 3) Grab the newly added view
         int lastIndex = chatContainer.getChildCount() - 1;
         View msgView = chatContainer.getChildAt(lastIndex);
 
-        // Set the text
+        // 4) Set the message text
         TextView tv = msgView.findViewById(R.id.message_text);
         tv.setText(text);
 
-        // Cast the bubble root and adjust its LayoutParams
+        // 5) Position the bubble left or right
         LinearLayout bubble = (LinearLayout) msgView;
         LinearLayout.LayoutParams lp =
                 (LinearLayout.LayoutParams) bubble.getLayoutParams();
-
-        if (isUser) {
-            // Align right + orange background
-            lp.gravity = Gravity.END;
-            bubble.setBackgroundColor(Color.parseColor("#FFA500"));
-        } else {
-            // Align left + light grey background
-            lp.gravity = Gravity.START;
-            bubble.setBackgroundColor(Color.parseColor("#EEEEEE"));
-        }
+        lp.gravity = isUser ? Gravity.END : Gravity.START;
         bubble.setLayoutParams(lp);
 
-        // Scroll to the bottom
+        // 6) Scroll to the bottom
         chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
         chatScroll.setVisibility(View.VISIBLE);
     }

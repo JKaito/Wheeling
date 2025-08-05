@@ -41,6 +41,7 @@ public class ScenarioPicker extends Fragment {
         return new ScenarioPicker();
     }
 
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -57,7 +58,7 @@ public class ScenarioPicker extends Fragment {
 
         Button btnChat      = view.findViewById(R.id.btn_scenario_chat);
         Button btnAssistant = view.findViewById(R.id.btn_scenario_assistant);
-
+        Log.d("ScenarioFrag", "onViewCreated() fired");
         FragmentManager fm = requireActivity().getSupportFragmentManager();
 
         btnChat.setOnClickListener(v -> {
