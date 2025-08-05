@@ -54,9 +54,9 @@
         <!-- Filter Buttons -->
         <HorizontalScrollView
             android:id="@+id/filter_buttons_container"
+            android:layout_below="@id/search_bar_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/search_results"
             android:layout_marginHorizontal="16dp"
             android:padding="8dp"
             android:fillViewport="true"
