@@ -772,26 +772,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override public void afterTextChanged(Editable e) {}
 
             @Override
-            public void onTextChanged(CharSequence s, int st, int b, int c) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String q = s.toString().trim().toLowerCase(Locale.ROOT);
-                if (q.isEmpty()) {
-                    suggestionRecycler.setVisibility(View.GONE);
-                    // optional: restore full bottom‐sheet list
-                    storeAdapter.updateData(allStores);
-                } else {
-                    List<String> names = new ArrayList<>();
-                    for (Store store : allStores) {
-                        if (store.getName().toLowerCase(Locale.ROOT).contains(q)) {
-                            names.add(store.getName());
-                        }
+
+                // 1) collect ALL matches
+                List<String> matches = new ArrayList<>();
+                for (Store store : allStores) {
+                    if (store.getName().toLowerCase(Locale.ROOT).contains(q)) {
+                        matches.add(store.getName());
                     }
-                    if (names.isEmpty()) {
-                        suggestionRecycler.setVisibility(View.GONE);
-                    } else {
-                        suggestionRecycler.setVisibility(View.VISIBLE);
-                    }
-                    suggestionAdapter.updateData(names);
                 }
+
+                // 2) take at most 5 into a fresh list
+                List<String> displayList = new ArrayList<>(Math.min(matches.size(), 5));
+                for (int i = 0; i < matches.size() && i < 5; i++) {
+                    displayList.add(matches.get(i));
+                }
+
+                // 3) show or hide the suggestions panel
+                if (displayList.isEmpty()) {
+                    suggestionRecycler.setVisibility(View.GONE);
+                } else {
+                    suggestionRecycler.setVisibility(View.VISIBLE);
+                    suggestionRecycler.bringToFront();
+                }
+
+                // 4) hand the adapter exactly 5 (or fewer) items
+                suggestionAdapter.updateData(displayList);
             }
         });
 

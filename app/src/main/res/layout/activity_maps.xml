@@ -48,7 +48,8 @@
             android:layout_marginTop="8dp"
             android:background="@android:color/white"
             android:elevation="8dp"
-            android:visibility="gone"
+            android:maxHeight="200dp"
+            android:visibility="visible"
             tools:listitem="@layout/suggestion_item" />
 
         <!-- Filter Buttons -->
