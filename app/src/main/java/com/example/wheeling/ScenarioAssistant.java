@@ -22,7 +22,7 @@ public class ScenarioAssistant extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // Inflate the layout you already made: fragment_scenario_assistant.xml
-        return inflater.inflate(R.layout.fragment_scenario_assistant, container, false);
+        // Inflate the layout you already made: chat_activity
+        return inflater.inflate(R.layout.chat_activity, container, false);
     }
 }

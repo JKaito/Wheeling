@@ -139,12 +139,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             } else {
                 // Show the overlay…
                 chatOverlay.setVisibility(View.VISIBLE);
+                chatOverlay.setVisibility(View.VISIBLE);
+                // ensure it’s on top and will consume touches
+                chatOverlay.bringToFront();
+                chatOverlay.setClickable(true);
+                chatOverlay.setFocusable(true);
 
-                // …and swap in a brand-new ChatFragment instance:
-                FragmentManager fm = getSupportFragmentManager();
-                FragmentTransaction ft = fm.beginTransaction();
-                ft.replace(R.id.chat_overlay, ScenarioPicker.newInstance(), "SCENARIO");
-                ft.commit();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.chat_overlay, ScenarioPicker.newInstance(), "SCENARIO")
+                        .commit();
             }
         });
 
@@ -811,15 +814,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Make sure the overlay container is visible
             FrameLayout chatOverlay = findViewById(R.id.chat_overlay);
             chatOverlay.setVisibility(View.VISIBLE);
+               // bring overlay to front and trap touches
+            chatOverlay.bringToFront();
+            chatOverlay.setClickable(true);
+            chatOverlay.setFocusable(true);
 
             // Swap in the ScenarioAssistant fragment
-            getSupportFragmentManager().beginTransaction()
-                    .replace(
-                            R.id.chat_overlay,
-                            ScenarioAssistant.newInstance(),
-                            "ASSISTANT"
-                    )
-                    .commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.chat_overlay,ChatFragment.newInstance(true),"CHAT")
+            .commit();
         }
     }
 
