@@ -26,9 +26,7 @@ public class ChatFragment extends Fragment {
     private static final String ARG_IS_ASSISTANT = "isAssistant";
     private boolean isAssistant = false;
 
-    /**
-     * Create as a help-seeker (default).
-     */
+    /** Create as a help-seeker (default). */
     public static ChatFragment newInstance() {
         return newInstance(false);
     }
@@ -73,7 +71,7 @@ public class ChatFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // Always inflate the unified chat layout (with chat_input + send_button)
+        // Inflate unified chat layout (with chat_input + send_button)
         return inflater.inflate(R.layout.chat_activity, container, false);
     }
 
@@ -88,7 +86,7 @@ public class ChatFragment extends Fragment {
             isAssistant = true;
         }
 
-        // Bind all views
+        // Bind views
         layoutGiveLocation = view.findViewById(R.id.layout_give_location);
         layoutReasonPicker = view.findViewById(R.id.layout_reason_picker);
         chatContainer      = view.findViewById(R.id.chat_container);
@@ -101,20 +99,26 @@ public class ChatFragment extends Fragment {
         btnUphill          = view.findViewById(R.id.btn_uphill);
         skipButton         = view.findViewById(R.id.btn_skip_reason);
 
-        // Save original Skip text & compute corner radius
-        skipOriginalText = skipButton.getText();
+        // Capture original Skip text & compute corner radius
+        skipOriginalText   = skipButton.getText();
         buttonCornerRadius = 12f * getResources().getDisplayMetrics().density;
 
-        // Init bot & handler
+        // Instantiate bot & handler
         chatBot    = new ChatBot();
         botHandler = new Handler(Looper.getMainLooper());
 
-        // If assistant: hide onboarding, show chat immediately
         if (isAssistant) {
+            // Assistant mode: hide onboarding, show chat, preload messages
             layoutGiveLocation.setVisibility(View.GONE);
             layoutReasonPicker.setVisibility(View.GONE);
             chatScroll.setVisibility(View.VISIBLE);
             chatContainer.setVisibility(View.VISIBLE);
+
+            // Preload two messages:
+            // 1) help-seeker’s message = orange/right
+            addMessageToChat("I need to go to the cafeteria called Okio", true);
+            // 2) assistant’s reply = grey/left
+            addMessageToChat("I'm busy sorry i can't help right now.", false);
         } else {
             // Help-seeker path: show pickers first
             updateSkipButtonState();
@@ -122,7 +126,7 @@ public class ChatFragment extends Fragment {
             setupSkipButton();
         }
 
-        // Always wire up the send button listener
+        // Always wire up the send-button listener
         setupSendLogic();
     }
 
@@ -130,7 +134,6 @@ public class ChatFragment extends Fragment {
         btnStairs.setOnClickListener(v -> selectReason(btnStairs));
         btnRough .setOnClickListener(v -> selectReason(btnRough));
         btnUphill.setOnClickListener(v -> selectReason(btnUphill));
-
         locationIcon.setOnClickListener(v -> {
             layoutGiveLocation.setVisibility(View.GONE);
             layoutReasonPicker.setVisibility(View.VISIBLE);
@@ -138,8 +141,8 @@ public class ChatFragment extends Fragment {
     }
 
     private void selectReason(ImageButton button) {
-        // Deselect if tapping the already-selected
         if (button == selectedButton) {
+            // Deselect
             if (button == btnStairs) {
                 button.setImageResource(R.drawable.ic_stairs);
             } else if (button == btnRough) {
@@ -151,8 +154,7 @@ public class ChatFragment extends Fragment {
             updateSkipButtonState();
             return;
         }
-
-        // Clear previous selection
+        // Clear previous
         if (selectedButton != null) {
             if (selectedButton == btnStairs) {
                 selectedButton.setImageResource(R.drawable.ic_stairs);
@@ -162,8 +164,7 @@ public class ChatFragment extends Fragment {
                 selectedButton.setImageResource(R.drawable.ic_uphill);
             }
         }
-
-        // Highlight new selection
+        // Highlight new
         if (button == btnStairs) {
             button.setImageResource(R.drawable.ic_stairs_orange);
         } else if (button == btnRough) {
@@ -178,17 +179,13 @@ public class ChatFragment extends Fragment {
     private void updateSkipButtonState() {
         GradientDrawable gd = new GradientDrawable();
         gd.setCornerRadius(buttonCornerRadius);
-
         if (selectedButton != null) {
-            // Orange “Request help”
             gd.setColor(Color.parseColor("#FFA723"));
             skipButton.setText("Request help");
         } else {
-            // Blue “Skip”
             gd.setColor(Color.parseColor("#379FFF"));
             skipButton.setText(skipOriginalText);
         }
-
         skipButton.setBackground(gd);
     }
 
@@ -201,7 +198,6 @@ public class ChatFragment extends Fragment {
             chatScroll.setVisibility(View.VISIBLE);
             chatContainer.setVisibility(View.VISIBLE);
 
-            // Build initial user message
             String message;
             if (selectedButton == btnStairs) {
                 message = "In need of help with some stairs";
@@ -218,48 +214,50 @@ public class ChatFragment extends Fragment {
 
     private void setupSendLogic() {
         sendButton.setOnClickListener(v -> {
-            String userText = chatInput.getText().toString().trim();
-            if (userText.isEmpty()) return;
+            String text = chatInput.getText().toString().trim();
+            if (text.isEmpty()) return;
 
-            // 1) show user message
-            addMessageToChat(userText, true);
-            chatInput.setText("");
-
-            // 2) schedule bot reply
-            String botReply = chatBot.getNextReply();
-            botHandler.postDelayed(() -> addMessageToChat(botReply, false), 500);
+            if (isAssistant) {
+                // Assistant typing → grey/left = isUser=false
+                addMessageToChat(text, false);
+                chatInput.setText("");
+                // Simulate help-seeker bot reply → orange/right = isUser=true
+                String reply = chatBot.getNextReply();
+                botHandler.postDelayed(() -> addMessageToChat(reply, true), 500);
+            } else {
+                // Help-seeker typing → orange/right = isUser=true
+                addMessageToChat(text, true);
+                chatInput.setText("");
+                // Bot reply → grey/left = isUser=false
+                String reply = chatBot.getNextReply();
+                botHandler.postDelayed(() -> addMessageToChat(reply, false), 500);
+            }
         });
     }
 
     /**
      * @param text   The message text
-     * @param isUser true if this is the “typing” side
+     * @param isUser true=orange/right (help-seeker), false=grey/left (assistant)
      */
     private void addMessageToChat(String text, boolean isUser) {
-        // In assistant mode, invert who shows as “user”
-        boolean showAsUser = isAssistant ? !isUser : isUser;
+        int layoutRes = isUser
+                ? R.layout.chat_message        // orange/right
+                : R.layout.chat_message_user;  // grey/left
 
-        // Inflate correct bubble layout
-        int layoutRes = showAsUser
-                ? R.layout.chat_message       // orange/right
-                : R.layout.chat_message_user; // grey/left
         LayoutInflater.from(getContext())
                 .inflate(layoutRes, chatContainer, true);
 
-        // Populate text
-        int lastIndex = chatContainer.getChildCount() - 1;
-        View msgView = chatContainer.getChildAt(lastIndex);
+        int last = chatContainer.getChildCount() - 1;
+        View msgView = chatContainer.getChildAt(last);
         TextView tv = msgView.findViewById(R.id.message_text);
         tv.setText(text);
 
-        // Align bubble
         LinearLayout bubble = (LinearLayout) msgView;
         LinearLayout.LayoutParams lp =
                 (LinearLayout.LayoutParams) bubble.getLayoutParams();
-        lp.gravity = showAsUser ? Gravity.END : Gravity.START;
+        lp.gravity = isUser ? Gravity.END : Gravity.START;
         bubble.setLayoutParams(lp);
 
-        // Scroll down
         chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
         chatScroll.setVisibility(View.VISIBLE);
     }
