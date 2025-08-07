@@ -21,6 +21,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
+
 public class ChatFragment extends Fragment {
 
     private static final String ARG_IS_ASSISTANT = "isAssistant";
@@ -51,7 +53,8 @@ public class ChatFragment extends Fragment {
     private ScrollView chatScroll;
     private EditText chatInput;
     private ImageButton sendButton;
-
+    private double userLat;
+    private double userLng;
     // Reason buttons
     private ImageView locationIcon;
     private ImageButton btnStairs, btnRough, btnUphill;
@@ -140,6 +143,40 @@ public class ChatFragment extends Fragment {
         });
     }
 
+    private void addInitialMapMessage() {
+        View bubble = LayoutInflater.from(getContext())
+                .inflate(R.layout.chat_message, chatContainer, false);
+
+        ImageView mapView = new ImageView(getContext());
+        LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        mapView.setLayoutParams(imgParams);
+
+        String mapUrl = "https://maps.googleapis.com/maps/api/staticmap?" +
+                "center=" + userLat + "," + userLng +
+                "&zoom=15" +
+                "&size=600x300" +
+                "&markers=color:blue%7Clabel:I%7C" + userLat + "," + userLng +
+                "&key=" + getString(R.string.google_maps_key);;
+
+        Glide.with(this)
+                .load(mapUrl)
+                .into(mapView);
+
+        LinearLayout bubbleLayout = (LinearLayout) bubble;
+        TextView textView = bubble.findViewById(R.id.message_text);
+        bubbleLayout.removeView(textView);
+        bubbleLayout.addView(mapView);
+
+        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) bubbleLayout.getLayoutParams();
+        lp.gravity = Gravity.START;
+        bubbleLayout.setLayoutParams(lp);
+
+        chatContainer.addView(bubble, 0);
+        chatScroll.setVisibility(View.VISIBLE);
+    }
+
     private void selectReason(ImageButton button) {
         if (button == selectedButton) {
             // Deselect
@@ -218,22 +255,30 @@ public class ChatFragment extends Fragment {
             if (text.isEmpty()) return;
 
             if (isAssistant) {
-                // Assistant typing → grey/left = isUser=false
+                // Assistant typing → grey/left
                 addMessageToChat(text, false);
                 chatInput.setText("");
-                // Simulate help-seeker bot reply → orange/right = isUser=true
-                String reply = chatBot.getNextReply();
-                botHandler.postDelayed(() -> addMessageToChat(reply, true), 500);
+
+                // Simulate help-seeker bot reply → orange/right
+                String botReply = chatBot.getNextReply(isAssistant);
+                botHandler.postDelayed(() ->
+                                addMessageToChat(botReply, true),
+                        500);
+
             } else {
-                // Help-seeker typing → orange/right = isUser=true
+                // Help-seeker typing → orange/right
                 addMessageToChat(text, true);
                 chatInput.setText("");
-                // Bot reply → grey/left = isUser=false
-                String reply = chatBot.getNextReply();
-                botHandler.postDelayed(() -> addMessageToChat(reply, false), 500);
+
+                // Bot reply → grey/left
+                String botReply = chatBot.getNextReply(isAssistant);
+                botHandler.postDelayed(() ->
+                                addMessageToChat(botReply, false),
+                        500);
             }
         });
     }
+
 
     /**
      * @param text   The message text

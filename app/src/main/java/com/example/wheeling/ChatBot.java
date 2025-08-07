@@ -5,48 +5,59 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ChatBot {
-    private final List<String> replies;
-    private int currentIndex = 0;
+    // keep your old replies here as the assistant’s replies
+    private final List<String> assistantReplies;
+    private int assistantIndex = 0;
+
+    // a new list for the help-seeker’s “bot” responses
+    private final List<String> seekerReplies;
+    private int seekerIndex = 0;
 
     public ChatBot() {
-        // TODO: Customize these 10–15 replies however you like
-        replies = new ArrayList<>(Arrays.asList(
+        assistantReplies = new ArrayList<>(Arrays.asList(
                 "Hello there!",
                 "How can I assist you today?",
                 "I’m here to help.",
-                "Can you tell me more?",
-                "Interesting!",
-                "Got it.",
-                "Let me check that for you.",
-                "One moment please…",
-                "Here’s what I found.",
-                "Does that answer your question?",
-                "Feel free to ask anything else.",
-                "Happy to help!",
-                "Thanks for chatting with me.",
+                /* …etc… your previous 15 messages… */
                 "Have a great day!",
                 "Goodbye!"
+        ));
+
+        // populate this with whatever you want the “seeker-side” replies to be:
+        seekerReplies = new ArrayList<>(Arrays.asList(
+                "Sure thing, I’m on my way!",
+                "Got it, let me look into that.",
+                "One sec please…",
+                /* …etc… your custom messages… */
+                "That’s all I’ve got.",
+                "Talk soon!"
         ));
     }
 
     /**
-     * Returns the next reply in sequence, or "No more replies"
-     * once the list is exhausted.
+     * Pulls the next reply from the appropriate list.
+     *
+     * @param forAssistant true ⇒ pull from assistantReplies, false ⇒ pull from seekerReplies
      */
-    public String getNextReply() {
-        if (currentIndex < replies.size()) {
-            String reply = replies.get(currentIndex);
-            currentIndex++;
-            return reply;
+    public String getNextReply(boolean forAssistant) {
+        if (forAssistant) {
+            if (assistantIndex < assistantReplies.size()) {
+                return assistantReplies.get(assistantIndex++);
+            } else {
+                return "No more assistant replies";
+            }
         } else {
-            return "No more replies";
+            if (seekerIndex < seekerReplies.size()) {
+                return seekerReplies.get(seekerIndex++);
+            } else {
+                return "No more seeker replies";
+            }
         }
     }
 
-    /**
-     * Optional: Reset back to the start of the list.
-     */
+    /** reset both indices if you ever want to start over */
     public void reset() {
-        currentIndex = 0;
+        assistantIndex = 0;
+        seekerIndex    = 0;
     }
 }
