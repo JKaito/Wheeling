@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -33,9 +34,7 @@ public class ChatFragment extends Fragment {
         return newInstance(false);
     }
 
-    /**
-     * @param isAssistant true to launch in assistant mode.
-     */
+    /** @param isAssistant true to launch in assistant mode. */
     public static ChatFragment newInstance(boolean isAssistant) {
         ChatFragment frag = new ChatFragment();
         Bundle args = new Bundle();
@@ -50,27 +49,25 @@ public class ChatFragment extends Fragment {
 
     // Chat UI
     private LinearLayout chatContainer;
-    private ScrollView chatScroll;
-    private EditText chatInput;
+    private ScrollView  chatScroll;
+    private EditText    chatInput;
     private ImageButton sendButton;
-    private double userLat;
-    private double userLng;
+
     // Reason buttons
-    private ImageView locationIcon;
+    private ImageView   locationIcon;
     private ImageButton btnStairs, btnRough, btnUphill;
     private ImageButton selectedButton = null;
 
     // Skip/Request-help button
-    private Button skipButton;
+    private Button      skipButton;
     private CharSequence skipOriginalText;
-    private float buttonCornerRadius;
+    private float        buttonCornerRadius;
 
     // Chat-bot logic
     private ChatBot chatBot;
     private Handler botHandler;
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -117,11 +114,13 @@ public class ChatFragment extends Fragment {
             chatScroll.setVisibility(View.VISIBLE);
             chatContainer.setVisibility(View.VISIBLE);
 
+            // ← NEW: show your minimap image as first orange/right bubble
+            addImageToChat(R.drawable.ic_minimap, /*isUser=*/true);
+
             // Preload two messages:
-            // 1) help-seeker’s message = orange/right
             addMessageToChat("I need to go to the cafeteria called Okio", true);
-            // 2) assistant’s reply = grey/left
             addMessageToChat("I'm busy sorry i can't help right now.", false);
+
         } else {
             // Help-seeker path: show pickers first
             updateSkipButtonState();
@@ -143,41 +142,8 @@ public class ChatFragment extends Fragment {
         });
     }
 
-    private void addInitialMapMessage() {
-        View bubble = LayoutInflater.from(getContext())
-                .inflate(R.layout.chat_message, chatContainer, false);
-
-        ImageView mapView = new ImageView(getContext());
-        LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-        mapView.setLayoutParams(imgParams);
-
-        String mapUrl = "https://maps.googleapis.com/maps/api/staticmap?" +
-                "center=" + userLat + "," + userLng +
-                "&zoom=15" +
-                "&size=600x300" +
-                "&markers=color:blue%7Clabel:I%7C" + userLat + "," + userLng +
-                "&key=" + getString(R.string.google_maps_key);;
-
-        Glide.with(this)
-                .load(mapUrl)
-                .into(mapView);
-
-        LinearLayout bubbleLayout = (LinearLayout) bubble;
-        TextView textView = bubble.findViewById(R.id.message_text);
-        bubbleLayout.removeView(textView);
-        bubbleLayout.addView(mapView);
-
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) bubbleLayout.getLayoutParams();
-        lp.gravity = Gravity.START;
-        bubbleLayout.setLayoutParams(lp);
-
-        chatContainer.addView(bubble, 0);
-        chatScroll.setVisibility(View.VISIBLE);
-    }
-
     private void selectReason(ImageButton button) {
+        // ... your existing selectReason implementation ...
         if (button == selectedButton) {
             // Deselect
             if (button == btnStairs) {
@@ -235,6 +201,9 @@ public class ChatFragment extends Fragment {
             chatScroll.setVisibility(View.VISIBLE);
             chatContainer.setVisibility(View.VISIBLE);
 
+            // ← NEW: show minimap image first in help-seeker flow
+            addImageToChat(R.drawable.ic_minimap, /*isUser=*/true);
+
             String message;
             if (selectedButton == btnStairs) {
                 message = "In need of help with some stairs";
@@ -258,27 +227,21 @@ public class ChatFragment extends Fragment {
                 // Assistant typing → grey/left
                 addMessageToChat(text, false);
                 chatInput.setText("");
-
                 // Simulate help-seeker bot reply → orange/right
                 String botReply = chatBot.getNextReply(isAssistant);
                 botHandler.postDelayed(() ->
-                                addMessageToChat(botReply, true),
-                        500);
-
+                        addMessageToChat(botReply, true), 500);
             } else {
                 // Help-seeker typing → orange/right
                 addMessageToChat(text, true);
                 chatInput.setText("");
-
                 // Bot reply → grey/left
                 String botReply = chatBot.getNextReply(isAssistant);
                 botHandler.postDelayed(() ->
-                                addMessageToChat(botReply, false),
-                        500);
+                        addMessageToChat(botReply, false), 500);
             }
         });
     }
-
 
     /**
      * @param text   The message text
@@ -306,4 +269,31 @@ public class ChatFragment extends Fragment {
         chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
         chatScroll.setVisibility(View.VISIBLE);
     }
+
+    /** ← NEW: helper to inject a drawable as a chat bubble */
+    /** ← FIXED: inflate with attachToRoot=false, then add it manually */
+    private void addImageToChat(@DrawableRes int drawableId, boolean isUser) {
+        // 1) Inflate bubble, but do NOT attach yet
+        View bubble = LayoutInflater.from(getContext())
+                .inflate(R.layout.chat_message_image, chatContainer, false);
+
+        // 2) Set the image resource
+        ImageView iv = bubble.findViewById(R.id.chat_image);
+        iv.setImageResource(drawableId);
+
+        // 3) Create LayoutParams appropriate for chatContainer (a LinearLayout)
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        lp.gravity = isUser ? Gravity.END : Gravity.START;
+        bubble.setLayoutParams(lp);
+
+        // 4) Insert at the *top* (index 0) so it's the very first message
+        chatContainer.addView(bubble, 0);
+
+        // 5) Scroll down to show it
+        chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
+    }
+
 }

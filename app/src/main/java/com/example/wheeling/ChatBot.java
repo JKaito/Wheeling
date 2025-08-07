@@ -15,12 +15,11 @@ public class ChatBot {
 
     public ChatBot() {
         assistantReplies = new ArrayList<>(Arrays.asList(
-                "Hello there!",
-                "How can I assist you today?",
-                "I’m here to help.",
-                /* …etc… your previous 15 messages… */
-                "Have a great day!",
-                "Goodbye!"
+                "Help",
+                "Help",
+                "Help",
+                "Help",
+                "Help"
         ));
 
         // populate this with whatever you want the “seeker-side” replies to be:
