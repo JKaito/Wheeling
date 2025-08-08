@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -57,7 +58,41 @@
             android:src="@drawable/ic_info" />
     </LinearLayout>
 
-    <!-- Center target icon and message -->
+    <!-- Pin location instruction (hint bar) -->
+    <LinearLayout
+        android:id="@+id/pin_hint_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/top_bar"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#2D343E"
+        android:paddingVertical="12dp"
+        android:paddingLeft="70dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Press"
+            android:textColor="#CCCCCC"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/ic_location_target" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="to pin your location to the chat"
+            android:textColor="#CCCCCC"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Center target icon and message (onboarding) -->
     <LinearLayout
         android:id="@+id/layout_give_location"
         android:layout_width="match_parent"
@@ -87,7 +122,8 @@
             android:textSize="14sp"
             android:gravity="center" />
     </LinearLayout>
-    <!-- blue Dialogue problem selector -->
+
+    <!-- Reason picker (blue) -->
     <LinearLayout
         android:id="@+id/layout_reason_picker"
         android:layout_width="match_parent"
@@ -108,7 +144,6 @@
             android:padding="12dp"
             android:textSize="15sp"/>
 
-        <!-- Icons Row -->
         <LinearLayout
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
@@ -117,7 +152,6 @@
             android:background="#33B5E5"
             android:gravity="center">
 
-            <!-- Stairs -->
             <LinearLayout
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
@@ -144,7 +178,6 @@
                     android:layout_marginTop="6dp"/>
             </LinearLayout>
 
-            <!-- Stairs -->
             <LinearLayout
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
@@ -171,8 +204,6 @@
                     android:layout_marginTop="6dp"/>
             </LinearLayout>
 
-
-            <!-- Stairs -->
             <LinearLayout
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
@@ -210,14 +241,15 @@
             android:textColor="#FFFFFF"/>
     </LinearLayout>
 
+    <!-- Chat scroll area (fills space between hint bar and input bar) -->
     <ScrollView
         android:id="@+id/chat_scroll"
         android:layout_width="match_parent"
-        android:layout_height="560dp"
-        android:layout_above="@+id/bottom_input_bar"
-        android:layout_marginBottom="0dp"
-        android:padding="8dp"
+        android:layout_height="match_parent"
+        android:layout_below="@id/pin_hint_bar"
+        android:layout_above="@id/bottom_input_bar"
         android:fillViewport="true"
+        android:padding="8dp"
         android:visibility="gone">
 
         <LinearLayout
@@ -225,45 +257,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="bottom"
             android:padding="12dp"
-            android:layout_gravity="bottom">
-        </LinearLayout>
+            android:gravity="bottom" />
     </ScrollView>
-
-
-    <!-- Pin location instruction (optional floating hint) -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_below="@id/top_bar"
-        android:background="#2D343E"
-        android:layout_centerHorizontal="true"
-        android:paddingVertical="12dp"
-        android:paddingLeft="70dp">
-
-        <TextView
-            android:text="Press"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#CCCCCC"
-            android:textSize="13sp" />
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginHorizontal="8dp"
-            android:src="@drawable/ic_location_target" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="to pin your location to the chat"
-            android:textColor="#CCCCCC"
-            android:textSize="13sp" />
-    </LinearLayout>
 
     <!-- Bottom Input Bar -->
     <LinearLayout
@@ -335,4 +331,5 @@
                 app:tint="#888888" />
         </FrameLayout>
     </LinearLayout>
+
 </RelativeLayout>

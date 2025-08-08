@@ -3,6 +3,8 @@ package com.example.wheeling;
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -10,8 +12,10 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -76,6 +80,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.provider.Settings;
+import androidx.core.splashscreen.SplashScreen;
+
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     private String selectedTravelMode = "walking";
@@ -99,11 +108,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LinearLayout layoutGiveLocation, layoutReasonPicker;
     private ImageView locationIcon;
     private Marker currentLocationMarker;
-    private static final LatLng FIXED_STOP = new LatLng(40.652491, 22.952756);
+    private static final LatLng FIXED_STOP = new LatLng(37.439620, 24.940059);
     private List<Polyline> currentPolylines = new ArrayList<>();
+
+    private boolean isLocationEnabledSystem() {
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (lm == null) return false;
+        try {
+            return lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                    || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen splash = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -290,20 +311,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         binding.myLocation.setOnClickListener(v -> {
+            if (!isLocationEnabledSystem()) {
+                Toast.makeText(this, "Turn on Location to use this feature", Toast.LENGTH_SHORT).show();
+                promptEnableLocationServices();
+                return;
+            }
             if (hasLocationPermission()) {
                 showUserLocation();
             } else {
                 ActivityCompat.requestPermissions(
                         MapsActivity.this,
-                        new String[]{
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
-                        },
+                        new String[]{ Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION },
                         LOCATION_PERMISSION_REQUEST_CODE
                 );
             }
         });
-
         // 🔹 Map each card to its corresponding icon
         Map<CardView, ImageButton> cardIconMap = new HashMap<>();
         cardIconMap.put(findViewById(R.id.card_wheelchair),
@@ -471,13 +493,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void enableMapInteractions() {
         mMap.setOnMapClickListener(destination -> {
-            // ⬅ remove any old pin_green/pin_orange/pin_red
-            clearDestinationMarker();
+            // Remove any old destination pins (green/orange/red)
+            if (destinationMarker != null) {
+                destinationMarker.remove();
+                destinationMarker = null;
+            }
 
             lastDestination = destination;
 
+            // Require system location services to be ON
+            if (!isLocationEnabledSystem()) {
+                Toast.makeText(this, "Turn on Location to draw a route", Toast.LENGTH_SHORT).show();
+                promptEnableLocationServices();
+                return;
+            }
+
+            // Draw Google route (your existing logic)
             drawGoogleRoute(destination);
 
+            // For walking/wheelchair also fetch accessible overlay
             if ("walking".equals(selectedTravelMode) || "wheelchair".equals(selectedTravelMode)) {
                 if (!hasLocationPermission()) return;
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -493,6 +527,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+
 
     private boolean hasLocationPermission() {
         return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -526,6 +561,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(this, "Could not get your location.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // Open the system screen to enable Location
+    private void promptEnableLocationServices() {
+        try {
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+        } catch (ActivityNotFoundException e) {
+            // Extremely rare, but fallback to general settings
+            startActivity(new Intent(Settings.ACTION_SETTINGS));
+        }
     }
 
     private void drawGoogleRoute(LatLng destination) {
@@ -870,13 +915,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             accessibleRoutePolyline = null;
         }
 
-        // 5) Ensure we have location permission
+        // 5) Require system location to be ON
+        if (!isLocationEnabledSystem()) {
+            Toast.makeText(this, "Turn on Location to generate a route", Toast.LENGTH_SHORT).show();
+            promptEnableLocationServices();
+            return;
+        }
+
+        // 6) Permission check (keep your existing flow)
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
-        // 6) Fetch current location and compute a random destination ≤150 m away
+        // 7) Fetch current location, compute random dest ≤150m, place markers, fit bounds, draw
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
             if (location == null) {
                 Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
@@ -884,63 +936,55 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
 
-            // Generate random point within 150 m radius
-            double radius = 150.0;
-            double y0 = origin.latitude, x0 = origin.longitude;
-            double earthRadius = 6371000.0; // earth radius in meters
+            // Generate random destination within 150 m
+            double radiusMeters = 150.0;
+            double earthRadius = 6371000.0; // meters
             Random rand = new Random();
             double u = rand.nextDouble(), v = rand.nextDouble();
-            double w = radius * Math.sqrt(u);
+            double w = radiusMeters * Math.sqrt(u);
             double t = 2 * Math.PI * v;
             double x = w * Math.cos(t), y = w * Math.sin(t);
-            double newLat = y0 + (y / earthRadius ) * (180.0 / Math.PI);
-            double newLng = x0 + (x / earthRadius ) * (180.0 / Math.PI) / Math.cos(y0 * Math.PI / 180.0);
+
+            double newLat = origin.latitude  + (y / earthRadius) * (180.0 / Math.PI);
+            double newLng = origin.longitude + (x / earthRadius) * (180.0 / Math.PI)
+                    / Math.cos(origin.latitude * Math.PI / 180.0);
             LatLng dest = new LatLng(newLat, newLng);
             lastDestination = dest;
 
-            // 7) Place (or move) the origin marker using your ic_my_location icon
-            if (userMarker != null) {
-                userMarker.remove();
-            }
-            Bitmap orig = BitmapFactory.decodeResource(getResources(), R.drawable.ic_my_location);
-            Bitmap small = Bitmap.createScaledBitmap(orig, 60, 60, false);
+            // Origin marker (ic_my_location, ~60px)
+            if (userMarker != null) userMarker.remove();
+            Bitmap myLocBmp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_my_location);
+            Bitmap myLocSmall = Bitmap.createScaledBitmap(myLocBmp, 60, 60, true);
             userMarker = mMap.addMarker(new MarkerOptions()
                     .position(origin)
                     .title("You are here")
-                    .icon(BitmapDescriptorFactory.fromBitmap(small)));
+                    .icon(BitmapDescriptorFactory.fromBitmap(myLocSmall)));
 
-            if (destinationMarker != null) {
-                destinationMarker.remove();
-            }
-
-// size in dp -> px
+            // Destination marker (scaled pin_green, ~36dp, anchored at tip)
+            if (destinationMarker != null) destinationMarker.remove();
             float density = getResources().getDisplayMetrics().density;
-            int pinW = (int) (24 * density);   // ~36dp wide
-            int pinH = (int) (24 * density);   // ~36dp tall (tweak to taste)
-
+            int pinW = (int) (36 * density), pinH = (int) (36 * density);
             Bitmap pinBmp = BitmapFactory.decodeResource(getResources(), R.drawable.pin_green);
             Bitmap pinSmall = Bitmap.createScaledBitmap(pinBmp, pinW, pinH, true);
-
             destinationMarker = mMap.addMarker(new MarkerOptions()
                     .position(dest)
                     .icon(BitmapDescriptorFactory.fromBitmap(pinSmall))
-                    .anchor(0.5f, 1f)); // tip of pin sits on the location
+                    .anchor(0.5f, 1f));
 
-            // 9) Build bounds to include both points
-            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
-            boundsBuilder.include(origin);
-            boundsBuilder.include(dest);
-            LatLngBounds bounds = boundsBuilder.build();
-
-            // 10) Animate camera to fit the route, with 50dp padding
-            int paddingPx = (int)(50 * getResources().getDisplayMetrics().density);
+            // Fit camera to show the whole route (origin + dest) with 50dp padding
+            LatLngBounds bounds = new LatLngBounds.Builder()
+                    .include(origin)
+                    .include(dest)
+                    .build();
+            int paddingPx = (int) (10 * density);
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, paddingPx));
 
-            // 11) Draw the route polylines
+            // Draw polylines
             drawGoogleRoute(dest);
             fetchAccessibleRoute(origin, dest);
         });
     }
+
 
     private void clearDestinationMarker() {
         if (destinationMarker != null) {
