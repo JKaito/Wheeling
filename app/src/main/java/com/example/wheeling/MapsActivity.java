@@ -471,23 +471,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void enableMapInteractions() {
         mMap.setOnMapClickListener(destination -> {
+            // ⬅ remove any old pin_green/pin_orange/pin_red
+            clearDestinationMarker();
+
             lastDestination = destination;
 
             drawGoogleRoute(destination);
 
-            if (!( "walking".equals(selectedTravelMode) || "wheelchair".equals(selectedTravelMode) )) return;
-
-            if (!hasLocationPermission()) return;
-
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
-                    LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
-                    fetchAccessibleRoute(origin, destination);
+            if ("walking".equals(selectedTravelMode) || "wheelchair".equals(selectedTravelMode)) {
+                if (!hasLocationPermission()) return;
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
                 }
-            });
+                fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                    if (location != null) {
+                        LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
+                        fetchAccessibleRoute(origin, destination);
+                    }
+                });
+            }
         });
     }
 
@@ -870,11 +873,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 5) Ensure we have location permission
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // You could request permissions here if desired
             return;
         }
 
-        // 6) Fetch current location and build a random destination ≤150 m away
+        // 6) Fetch current location and compute a random destination ≤150 m away
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
             if (location == null) {
                 Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
@@ -885,34 +887,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Generate random point within 150 m radius
             double radius = 150.0;
             double y0 = origin.latitude, x0 = origin.longitude;
-            double R = 6371000.0; // earth radius in meters
+            double earthRadius = 6371000.0; // earth radius in meters
             Random rand = new Random();
             double u = rand.nextDouble(), v = rand.nextDouble();
             double w = radius * Math.sqrt(u);
             double t = 2 * Math.PI * v;
             double x = w * Math.cos(t), y = w * Math.sin(t);
-            double newLat = y0 + (y / R) * (180.0 / Math.PI);
-            double newLng = x0 + (x / R) * (180.0 / Math.PI) / Math.cos(y0 * Math.PI / 180.0);
+            double newLat = y0 + (y / earthRadius ) * (180.0 / Math.PI);
+            double newLng = x0 + (x / earthRadius ) * (180.0 / Math.PI) / Math.cos(y0 * Math.PI / 180.0);
             LatLng dest = new LatLng(newLat, newLng);
             lastDestination = dest;
 
-            // 7) Build bounds to include both origin and destination
+            // 7) Place (or move) the origin marker using your ic_my_location icon
+            if (userMarker != null) {
+                userMarker.remove();
+            }
+            Bitmap orig = BitmapFactory.decodeResource(getResources(), R.drawable.ic_my_location);
+            Bitmap small = Bitmap.createScaledBitmap(orig, 60, 60, false);
+            userMarker = mMap.addMarker(new MarkerOptions()
+                    .position(origin)
+                    .title("You are here")
+                    .icon(BitmapDescriptorFactory.fromBitmap(small)));
+
+            if (destinationMarker != null) {
+                destinationMarker.remove();
+            }
+
+// size in dp -> px
+            float density = getResources().getDisplayMetrics().density;
+            int pinW = (int) (24 * density);   // ~36dp wide
+            int pinH = (int) (24 * density);   // ~36dp tall (tweak to taste)
+
+            Bitmap pinBmp = BitmapFactory.decodeResource(getResources(), R.drawable.pin_green);
+            Bitmap pinSmall = Bitmap.createScaledBitmap(pinBmp, pinW, pinH, true);
+
+            destinationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(dest)
+                    .icon(BitmapDescriptorFactory.fromBitmap(pinSmall))
+                    .anchor(0.5f, 1f)); // tip of pin sits on the location
+
+            // 9) Build bounds to include both points
             LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
             boundsBuilder.include(origin);
             boundsBuilder.include(dest);
             LatLngBounds bounds = boundsBuilder.build();
 
-            // 8) Animate camera to show the entire route, with padding
-            int paddingPx = (int)(50 * getResources().getDisplayMetrics().density); // 100dp
+            // 10) Animate camera to fit the route, with 50dp padding
+            int paddingPx = (int)(50 * getResources().getDisplayMetrics().density);
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, paddingPx));
 
-            // 9) Draw the route polylines
+            // 11) Draw the route polylines
             drawGoogleRoute(dest);
             fetchAccessibleRoute(origin, dest);
         });
     }
 
-
+    private void clearDestinationMarker() {
+        if (destinationMarker != null) {
+            destinationMarker.remove();
+            destinationMarker = null;
+        }
+    }
 
     public void showStoreMarkerAndDirections(Store store) {
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
