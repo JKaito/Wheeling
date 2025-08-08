@@ -16,6 +16,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import com.example.wheeling.MapsActivity;
+import android.view.ViewGroup;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
@@ -137,6 +139,7 @@ public class ChatFragment extends Fragment {
         btnRough .setOnClickListener(v -> selectReason(btnRough));
         btnUphill.setOnClickListener(v -> selectReason(btnUphill));
         locationIcon.setOnClickListener(v -> {
+            layoutGiveLocation.setVisibility(View.GONE);
             layoutGiveLocation.setVisibility(View.GONE);
             layoutReasonPicker.setVisibility(View.VISIBLE);
         });
@@ -272,28 +275,39 @@ public class ChatFragment extends Fragment {
 
     /** ← NEW: helper to inject a drawable as a chat bubble */
     /** ← FIXED: inflate with attachToRoot=false, then add it manually */
+    /** Helper to inject a drawable as a chat bubble, now tappable. */
     private void addImageToChat(@DrawableRes int drawableId, boolean isUser) {
-        // 1) Inflate bubble, but do NOT attach yet
+        // 1) Inflate the bubble (don’t attach yet)
         View bubble = LayoutInflater.from(getContext())
                 .inflate(R.layout.chat_message_image, chatContainer, false);
 
-        // 2) Set the image resource
+        // 2) Set the image
         ImageView iv = bubble.findViewById(R.id.chat_image);
         iv.setImageResource(drawableId);
 
-        // 3) Create LayoutParams appropriate for chatContainer (a LinearLayout)
+        // 3) LayoutParams: align right/left & bottom margin
+        float density = getResources().getDisplayMetrics().density;
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
         lp.gravity = isUser ? Gravity.END : Gravity.START;
+        lp.bottomMargin = (int) (8 * density);  // 8 dp spacing
         bubble.setLayoutParams(lp);
 
-        // 4) Insert at the *top* (index 0) so it's the very first message
+        // 4) Insert at the top so it’s the very first message
         chatContainer.addView(bubble, 0);
 
-        // 5) Scroll down to show it
+        // 5) Make it tappable: callback into MapsActivity
+        bubble.setOnClickListener(v -> {
+            if (getActivity() instanceof MapsActivity) {
+                ((MapsActivity) getActivity()).onMinimapClicked();
+            }
+        });
+
+        // 6) Scroll to bottom to reveal it
         chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
     }
+
 
 }

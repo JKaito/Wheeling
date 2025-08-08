@@ -66,6 +66,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -841,6 +842,76 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .commit();
         }
     }
+
+
+    /** Called when the chat’s first‐bubble image is tapped. */
+    public void onMinimapClicked() {
+        // 1) Hide the chat overlay
+        FrameLayout overlay = findViewById(R.id.chat_overlay);
+        overlay.setVisibility(View.GONE);
+
+        // 2) Highlight the wheelchair nav‐card
+        highlightNavButton(R.id.card_wheelchair);
+
+        // 3) Switch to wheelchair mode
+        selectedTravelMode = "wheelchair";
+        routeColor = Color.parseColor("#FF9900");
+
+        // 4) Clear any existing routes
+        if (googleRoutePolyline != null) {
+            googleRoutePolyline.remove();
+            googleRoutePolyline = null;
+        }
+        if (accessibleRoutePolyline != null) {
+            accessibleRoutePolyline.remove();
+            accessibleRoutePolyline = null;
+        }
+
+        // 5) Ensure we have location permission
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // You could request permissions here if desired
+            return;
+        }
+
+        // 6) Fetch current location and build a random destination ≤150 m away
+        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+            if (location == null) {
+                Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
+
+            // Generate random point within 150 m radius
+            double radius = 150.0;
+            double y0 = origin.latitude, x0 = origin.longitude;
+            double R = 6371000.0; // earth radius in meters
+            Random rand = new Random();
+            double u = rand.nextDouble(), v = rand.nextDouble();
+            double w = radius * Math.sqrt(u);
+            double t = 2 * Math.PI * v;
+            double x = w * Math.cos(t), y = w * Math.sin(t);
+            double newLat = y0 + (y / R) * (180.0 / Math.PI);
+            double newLng = x0 + (x / R) * (180.0 / Math.PI) / Math.cos(y0 * Math.PI / 180.0);
+            LatLng dest = new LatLng(newLat, newLng);
+            lastDestination = dest;
+
+            // 7) Build bounds to include both origin and destination
+            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+            boundsBuilder.include(origin);
+            boundsBuilder.include(dest);
+            LatLngBounds bounds = boundsBuilder.build();
+
+            // 8) Animate camera to show the entire route, with padding
+            int paddingPx = (int)(50 * getResources().getDisplayMetrics().density); // 100dp
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, paddingPx));
+
+            // 9) Draw the route polylines
+            drawGoogleRoute(dest);
+            fetchAccessibleRoute(origin, dest);
+        });
+    }
+
 
 
     public void showStoreMarkerAndDirections(Store store) {
