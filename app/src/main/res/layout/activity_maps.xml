@@ -295,7 +295,7 @@
         <Space android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/card_walk"
+            android:id="@+id/chat_button"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"

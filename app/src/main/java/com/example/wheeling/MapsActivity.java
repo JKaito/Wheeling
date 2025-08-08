@@ -10,39 +10,29 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.example.wheeling.StoreDetailBottomSheetFragment;
 
-import com.bumptech.glide.Glide;
 import com.example.wheeling.databinding.ActivityMapsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -85,10 +75,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import android.widget.TextView;
-import com.example.wheeling.ScenarioPicker;
-
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     private String selectedTravelMode = "walking";
@@ -130,20 +116,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // 2) Now grab your overlay and toggle it on button taps
         FrameLayout chatOverlay = findViewById(R.id.chat_overlay);
-        CardView    cardWalk    = findViewById(R.id.card_walk);
+        CardView    cardWalk    = findViewById(R.id.chat_button);
 
         cardWalk.setOnClickListener(v -> {
             if (chatOverlay.getVisibility() == View.VISIBLE) {
-                // Just hide if it's already up
                 chatOverlay.setVisibility(View.GONE);
             } else {
-                // Show the overlay…
                 chatOverlay.setVisibility(View.VISIBLE);
-                chatOverlay.setVisibility(View.VISIBLE);
-                // ensure it’s on top and will consume touches
                 chatOverlay.bringToFront();
                 chatOverlay.setClickable(true);
                 chatOverlay.setFocusable(true);
+
+                // ← NEW: highlight the nav button
+                highlightNavButton(R.id.chat_button);
 
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.chat_overlay, ScenarioPicker.newInstance(), "SCENARIO")
@@ -324,7 +309,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 findViewById(R.id.icon_wheelchair));
         cardIconMap.put(findViewById(R.id.card_car),
                 findViewById(R.id.icon_car));
-        cardIconMap.put(findViewById(R.id.card_walk),
+        cardIconMap.put(findViewById(R.id.chat_button),
                 findViewById(R.id.icon_card_walk));
         cardIconMap.put(findViewById(R.id.card_home),
                 findViewById(R.id.icon_home));
@@ -362,7 +347,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
                 // Show/hide the chat overlay
-                boolean isWalk = (id == R.id.card_walk);
+                boolean isWalk = (id == R.id.chat_button);
                 chatOverlay.setVisibility(isWalk ? View.VISIBLE : View.GONE);
 
                 // 🔹 Always swap in a brand‑new ChatFragment when Walk is selected
@@ -807,21 +792,53 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    private void highlightNavButton(int selectedCardId) {
+        // The four cards, in the same order you wired before
+        int[] cardIds = {
+                R.id.card_wheelchair,
+                R.id.card_car,
+                R.id.chat_button,
+                R.id.card_home
+        };
+        int[] iconIds = {
+                R.id.icon_wheelchair,
+                R.id.icon_car,
+                R.id.icon_card_walk,
+                R.id.icon_home
+        };
+
+        for (int i = 0; i < cardIds.length; i++) {
+            CardView card = findViewById(cardIds[i]);
+            ImageButton icon = findViewById(iconIds[i]);
+
+            if (cardIds[i] == selectedCardId) {
+                // selected
+                card.setCardBackgroundColor(Color.parseColor("#379FFF"));
+                icon.setColorFilter(Color.WHITE);
+            } else {
+                // reset
+                card.setCardBackgroundColor(Color.WHITE);
+                icon.clearColorFilter();
+            }
+        }
+    }
+
     private void handleIncomingIntent(Intent intent) {
         if ("OPEN_ASSISTANT".equals(intent.getAction())
                 && "ASSISTANT".equals(intent.getStringExtra("openFragment"))) {
 
-            // Make sure the overlay container is visible
             FrameLayout chatOverlay = findViewById(R.id.chat_overlay);
             chatOverlay.setVisibility(View.VISIBLE);
-               // bring overlay to front and trap touches
             chatOverlay.bringToFront();
             chatOverlay.setClickable(true);
             chatOverlay.setFocusable(true);
 
-            // Swap in the ScenarioAssistant fragment
-            getSupportFragmentManager().beginTransaction().replace(R.id.chat_overlay,ChatFragment.newInstance(true),"CHAT")
-            .commit();
+            // ← NEW: highlight the nav button when opened via notification
+            highlightNavButton(R.id.chat_button);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.chat_overlay, ChatFragment.newInstance(true), "CHAT")
+                    .commit();
         }
     }
 
