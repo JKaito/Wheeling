@@ -126,6 +126,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen splash = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+
+        // 1) Fast check from cached value
+        if (WheelingApp.isShutdown(this)) {
+            startActivity(new Intent(this, BlockedActivity.class));
+            finish();
+            return;
+        }
+
+        // 2) Refresh in background, then re-check when fetch completes  👈 ADD THIS
+        com.google.firebase.remoteconfig.FirebaseRemoteConfig rc =
+                com.google.firebase.remoteconfig.FirebaseRemoteConfig.getInstance();
+        rc.fetchAndActivate().addOnCompleteListener(task -> {
+            if (rc.getBoolean(WheelingApp.KEY_SHUTDOWN)) {
+                startActivity(new Intent(this, BlockedActivity.class));
+                finish();
+            }
+        });
+
+
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -241,14 +260,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
-
-
-
-
-
-
-
-
 
         // 🔹 Find filter buttons by ID
         MaterialButton foodButton    = findViewById(R.id.food_button);
@@ -421,6 +432,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         defaultSelectedCard.performClick(); // This ensures it uses the same styling logic
         handleIncomingIntent(getIntent());
     }
+
+
+    //-------------------- FIREBASE --------------------
+
+    private final android.os.Handler shutdownHandler =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable shutdownPoll = new Runnable() {
+        @Override public void run() {
+            com.google.firebase.remoteconfig.FirebaseRemoteConfig rc =
+                    com.google.firebase.remoteconfig.FirebaseRemoteConfig.getInstance();
+            rc.fetchAndActivate().addOnCompleteListener(task -> {
+                if (rc.getBoolean(WheelingApp.KEY_SHUTDOWN)) {
+                    startActivity(new Intent(MapsActivity.this, BlockedActivity.class));
+                    finish();
+                } else {
+                    // poll again in 30s (match this to your fetch interval)
+                    shutdownHandler.postDelayed(shutdownPoll, 30_000);
+                }
+            });
+        }
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // start the shutdown poller while this screen is visible
+        shutdownHandler.post(shutdownPoll);
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        shutdownHandler.removeCallbacks(shutdownPoll); // stop when not visible
+    }
+    //-------------------- FIREBASE --------------------
+
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -992,6 +1040,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             destinationMarker = null;
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        com.google.firebase.remoteconfig.FirebaseRemoteConfig rc =
+                com.google.firebase.remoteconfig.FirebaseRemoteConfig.getInstance();
+        rc.fetchAndActivate().addOnCompleteListener(task -> {
+            if (rc.getBoolean(WheelingApp.KEY_SHUTDOWN)) {
+                startActivity(new Intent(this, BlockedActivity.class));
+                finish();
+            }
+        });
+    }
+
+
 
     public void showStoreMarkerAndDirections(Store store) {
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);

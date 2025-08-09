@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
+        android:name=".WheelingApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,7 +17,6 @@
         android:roundIcon="@drawable/icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.Wheeling"
-        android:screenOrientation="portrait"
         tools:targetApi="31">
 
         <meta-data
@@ -34,6 +34,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".BlockedActivity"
+            android:exported="false"
+            android:noHistory="true"
+            android:screenOrientation="portrait" />
     </application>
-
 </manifest>
