@@ -22,9 +22,6 @@ misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
 
-# API Keys
-google_maps_api.xml
-
 # Keystore files
 *.jks
 *.keystore
@@ -35,4 +32,5 @@ google-services.json
 # Android Profiling
 *.hprof
 app/src/main/res/values/google_maps_api.xml
-app/src/main/res/values/google_maps_api.xml
+
+
