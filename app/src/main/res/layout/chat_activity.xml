@@ -316,7 +316,10 @@
                 android:textColor="#000000"
                 android:textColorHint="#888888"
                 android:gravity="center_vertical"
-                android:textSize="15sp"/>
+                android:textSize="15sp"
+                android:enabled="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"/>
 
             <ImageButton
                 android:id="@+id/send_button"
@@ -328,7 +331,9 @@
                 android:src="@drawable/ic_send"
                 android:contentDescription="Send"
                 android:scaleType="fitCenter"
-                app:tint="#888888" />
+                app:tint="#888888"
+                android:enabled="false"
+                android:alpha="0.4"/>
         </FrameLayout>
     </LinearLayout>
 

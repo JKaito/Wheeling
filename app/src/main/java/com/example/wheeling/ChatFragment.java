@@ -1,5 +1,6 @@
 package com.example.wheeling;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -16,15 +18,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import com.example.wheeling.MapsActivity;
-import android.view.ViewGroup;
+
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import com.bumptech.glide.Glide;
 
 public class ChatFragment extends Fragment {
 
@@ -109,14 +108,18 @@ public class ChatFragment extends Fragment {
         chatBot    = new ChatBot();
         botHandler = new Handler(Looper.getMainLooper());
 
+        // Initial enable/disable based on current visibility of chatScroll
+        setChatEnabled(chatScroll.getVisibility() == View.VISIBLE);
+
         if (isAssistant) {
             // Assistant mode: hide onboarding, show chat, preload messages
             layoutGiveLocation.setVisibility(View.GONE);
             layoutReasonPicker.setVisibility(View.GONE);
             chatScroll.setVisibility(View.VISIBLE);
             chatContainer.setVisibility(View.VISIBLE);
+            setChatEnabled(true); // enable input when chat is shown
 
-            // ← NEW: show your minimap image as first orange/right bubble
+            // show your minimap image as first orange/right bubble
             addImageToChat(R.drawable.ic_minimap, /*isUser=*/true);
 
             // Preload two messages:
@@ -146,7 +149,6 @@ public class ChatFragment extends Fragment {
     }
 
     private void selectReason(ImageButton button) {
-        // ... your existing selectReason implementation ...
         if (button == selectedButton) {
             // Deselect
             if (button == btnStairs) {
@@ -203,8 +205,9 @@ public class ChatFragment extends Fragment {
             // Show chat
             chatScroll.setVisibility(View.VISIBLE);
             chatContainer.setVisibility(View.VISIBLE);
+            setChatEnabled(true); // enable input when chat becomes visible
 
-            // ← NEW: show minimap image first in help-seeker flow
+            // show minimap image first in help-seeker flow
             addImageToChat(R.drawable.ic_minimap, /*isUser=*/true);
 
             String message;
@@ -246,6 +249,24 @@ public class ChatFragment extends Fragment {
         });
     }
 
+    /** Enable/disable input + send button to match chat visibility. */
+    private void setChatEnabled(boolean enabled) {
+        chatInput.setEnabled(enabled);
+        chatInput.setFocusable(enabled);
+        chatInput.setFocusableInTouchMode(enabled);
+        sendButton.setEnabled(enabled);
+        sendButton.setAlpha(enabled ? 1f : 0.4f);
+
+        if (!enabled) {
+            chatInput.clearFocus();
+            InputMethodManager imm =
+                    (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(chatInput.getWindowToken(), 0);
+            }
+        }
+    }
+
     /**
      * @param text   The message text
      * @param isUser true=orange/right (help-seeker), false=grey/left (assistant)
@@ -271,43 +292,36 @@ public class ChatFragment extends Fragment {
 
         chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
         chatScroll.setVisibility(View.VISIBLE);
+        setChatEnabled(true); // ensure input is enabled once chat is visible
     }
 
-    /** ← NEW: helper to inject a drawable as a chat bubble */
-    /** ← FIXED: inflate with attachToRoot=false, then add it manually */
     /** Helper to inject a drawable as a chat bubble, now tappable. */
     private void addImageToChat(@DrawableRes int drawableId, boolean isUser) {
-        // 1) Inflate the bubble (don’t attach yet)
         View bubble = LayoutInflater.from(getContext())
                 .inflate(R.layout.chat_message_image, chatContainer, false);
 
-        // 2) Set the image
         ImageView iv = bubble.findViewById(R.id.chat_image);
         iv.setImageResource(drawableId);
 
-        // 3) LayoutParams: align right/left & bottom margin
         float density = getResources().getDisplayMetrics().density;
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
         lp.gravity = isUser ? Gravity.END : Gravity.START;
-        lp.bottomMargin = (int) (8 * density);  // 8 dp spacing
+        lp.bottomMargin = (int) (8 * density);
         bubble.setLayoutParams(lp);
 
-        // 4) Insert at the top so it’s the very first message
         chatContainer.addView(bubble, 0);
 
-        // 5) Make it tappable: callback into MapsActivity
         bubble.setOnClickListener(v -> {
             if (getActivity() instanceof MapsActivity) {
                 ((MapsActivity) getActivity()).onMinimapClicked();
             }
         });
 
-        // 6) Scroll to bottom to reveal it
         chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
+        chatScroll.setVisibility(View.VISIBLE);
+        setChatEnabled(true); // enable input when showing chat via image
     }
-
-
 }
