@@ -29,7 +29,6 @@ public class WheelingApp extends Application {
         defaults.put(KEY_SHUTDOWN, false);
         rc.setDefaultsAsync(defaults);
 
-        // Fetch from Firebase and cache the value locally
         fetchAndCache(this);
     }
 

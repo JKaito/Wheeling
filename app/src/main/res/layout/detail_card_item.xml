@@ -157,8 +157,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:autoLink="web"
                         android:drawablePadding="8dp"
-                        android:textColor="@android:color/white"/>
+                        android:linksClickable="true"
+                        android:textColor="@android:color/white" />
 
                     <View
                         android:layout_width="match_parent"

@@ -337,6 +337,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 );
             }
         });
+
         // 🔹 Map each card to its corresponding icon
         Map<CardView, ImageButton> cardIconMap = new HashMap<>();
         cardIconMap.put(findViewById(R.id.card_wheelchair),

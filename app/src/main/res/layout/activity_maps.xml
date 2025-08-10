@@ -187,7 +187,7 @@
         android:orientation="vertical"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         app:behavior_peekHeight="80dp"
-        app:behavior_fitToContents="false"
+        app:behavior_fitToContents="true"
         app:behavior_expandedOffset="350dp">
 
         <!-- Static gray container (never scrolls) -->
@@ -207,7 +207,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:nestedScrollingEnabled="true"
-                android:paddingBottom="110dp"/>
+                android:paddingBottom="0dp"/>
 
             <!-- Your detail card, fully static -->
             <include

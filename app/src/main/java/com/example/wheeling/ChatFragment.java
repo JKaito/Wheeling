@@ -29,13 +29,9 @@ public class ChatFragment extends Fragment {
 
     private static final String ARG_IS_ASSISTANT = "isAssistant";
     private boolean isAssistant = false;
-
-    /** Create as a help-seeker (default). */
     public static ChatFragment newInstance() {
         return newInstance(false);
     }
-
-    /** @param isAssistant true to launch in assistant mode. */
     public static ChatFragment newInstance(boolean isAssistant) {
         ChatFragment frag = new ChatFragment();
         Bundle args = new Bundle();
@@ -44,7 +40,7 @@ public class ChatFragment extends Fragment {
         return frag;
     }
 
-    // Onboarding & reason-picker layouts
+    // tap to give location layout & reason-picker layouts
     private LinearLayout layoutGiveLocation;
     private LinearLayout layoutReasonPicker;
 
@@ -81,7 +77,7 @@ public class ChatFragment extends Fragment {
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Read role flag
+        // Read role flag (assistant or in need of assistance)
         Bundle args = getArguments();
         if (args != null && args.getBoolean(ARG_IS_ASSISTANT, false)) {
             isAssistant = true;
