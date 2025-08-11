@@ -108,7 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LinearLayout layoutGiveLocation, layoutReasonPicker;
     private ImageView locationIcon;
     private Marker currentLocationMarker;
-    private static final LatLng FIXED_STOP = new LatLng(37.439620, 24.940059);
+    private static final LatLng FIXED_STOP = new LatLng(37.442687, 24.945161);
     private List<Polyline> currentPolylines = new ArrayList<>();
 
     private boolean isLocationEnabledSystem() {
