@@ -15,11 +15,10 @@ public class ChatBot {
 
     public ChatBot() {
         assistantReplies = new ArrayList<>(Arrays.asList(
-                "Help",
-                "Help",
-                "Help",
-                "Help",
-                "Help"
+                "Ohh thanks I ll wait for you, you have me location.",
+                "Ok you will see me I have a wheelchair. XD",
+                "Ok",
+                "Ok"
         ));
 
         // populate this with whatever you want the “seeker-side” replies to be:
@@ -27,7 +26,6 @@ public class ChatBot {
                 "Sure thing, I’m on my way!",
                 "Got it, let me look into that.",
                 "One sec please…",
-                /* …etc… your custom messages… */
                 "That’s all I’ve got.",
                 "Talk soon!"
         ));
