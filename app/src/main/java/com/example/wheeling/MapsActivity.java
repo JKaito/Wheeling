@@ -685,14 +685,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         .color(color)
                                 );
                                 currentPolylines.add(p);
-                                // …any other marker/camera logic you had…
                             });
                         }));
             }
         });
     }
 
-    // 3) Add this helper class inside your activity, just below drawGoogleRoute:
     private class DirectionsCallback implements Callback {
         private final Consumer<List<LatLng>> onSuccess;
 
@@ -735,7 +733,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void fetchAccessibleRoute(LatLng origin, LatLng destination) {
-        String apiKey = getString(R.string.osm_key); // assuming you defined this in google_maps_api.xml
+        String apiKey = getString(R.string.osm_key);
         String url = "https://api.openrouteservice.org/v2/directions/wheelchair?api_key=" + apiKey
                 + "&start=" + origin.longitude + "," + origin.latitude
                 + "&end=" + destination.longitude + "," + destination.latitude;
